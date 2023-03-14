@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 
 Sbox = (
@@ -175,9 +176,8 @@ def SubWord(tab):
     """Faire une substitution des elements du tableau a partir de la BD Sbox"""
     return np.array([format(Sbox[int(elem, 16)]) for elem in tab])
 
-
-def SubWordInverse(tab):
-    return np.array([format(Sbox.index(int(elem, 16))) for elem in tab])
+def InverseBit(bit):
+    return format(Sbox.index(int(bit, 16)))
 
 def Rcon(entier):
     """Retourne le rcon grace a la BD rcon"""
@@ -187,16 +187,20 @@ def create_key(key):
     """Prend une cle en argument et en ressort un tableau 4*4"""
     return np.array([key[i]+key[i+1] for i in range(0, len(key), 2)]).reshape(4,4, order='F')
 
+def XorBit(bit1, bit2):
+    return format(int(bit1, 16)^int(bit2, 16))
+
 def XorWord(tab1, tab2):
     """Retourne le Xor entre les 2 element"""
     return np.array([format(int(tab1[i],16)^int(tab2[i],16)) for i in range(4)])
 
+def XorTab(tab1, tab2):
+    return np.array([[format(int(tab1[i][j],16)^int(tab2[i][j],16)) for i in range(4)] for j in range(4)])
 
-
-def keyExpansion(key):
+def keyExpansion(key, round):
     """S'occupe de cree l'expansion d'une cle en fonction des tours"""
     the_key = create_key(key)
-    for i in range(1, 11):
+    for i in range(1, round+1):
         x = the_key[:, -1] #Recuperre la derniere colonne de la cle
         x = RotWord(x)
         x = SubWord(x)
@@ -214,24 +218,12 @@ def printState(text):
         key+= format(ord(i))
     return create_key(key)
 
-def printStateInverse(message_chiffre):
-    text = ""
-    message_chiffre = message_chiffre.reshape(16, order='F')
-    for i in message_chiffre:
-        text+= chr(int(i, 16))
-    return text
 
 def subBytes(etat):
     """Nous fais une substitution de chaque element de notre etat"""
     etat_change =  np.copy(etat)
     for i in range(len(etat_change)):
         etat_change[i] = SubWord(etat[i])
-    return etat_change
-
-def subBytesInverse(etat):
-    etat_change =  np.copy(etat)
-    for i in range(len(etat_change)):
-        etat_change[i] = SubWordInverse(etat[i])
     return etat_change
 
 def ShiftRows(etat):
@@ -241,11 +233,6 @@ def ShiftRows(etat):
         etat_change[i] = np.roll(etat[i],-i)
     return etat_change
 
-def ShiftRowsInverse(etat):
-    etat_change = np.copy(etat)
-    for i in range(len(etat)):
-        etat_change[i] = np.roll(etat[i], i)
-    return etat_change
 
 def MixColumns(etat):
     """Nous fais un """
@@ -253,20 +240,11 @@ def MixColumns(etat):
     for i in range(4):
         un0, un1, un2, un3 = etat[0, i], etat[1, i], etat[2, i], etat[3, i]
         etat_change[0, i] = format(multiplication_by_2[int(un0, 16)]^multiplication_by_3[int(un1, 16)]^int(un2, 16)^int(un3, 16))
-        etat_change[1, i] = format(multiplication_by_2[int(un1, 16)]^multiplication_by_3[int(un2, 16)]^int(un0, 16)^int(un3, 16))
-        etat_change[2, i] = format(multiplication_by_2[int(un2, 16)]^multiplication_by_3[int(un3, 16)]^int(un0, 16)^int(un1, 16))
-        etat_change[3, i] = format(multiplication_by_2[int(un3, 16)]^multiplication_by_3[int(un0, 16)]^int(un2, 16)^int(un1, 16))
+        etat_change[1, i] = format(int(un0, 16)^multiplication_by_2[int(un1, 16)]^multiplication_by_3[int(un2, 16)]^int(un3, 16))
+        etat_change[2, i] = format(int(un0, 16)^int(un1, 16)^multiplication_by_2[int(un2, 16)]^multiplication_by_3[int(un3, 16)])
+        etat_change[3, i] = format(multiplication_by_3[int(un0, 16)]^int(un1, 16)^int(un2, 16)^multiplication_by_2[int(un3, 16)])
     return etat_change
 
-def MixColumnsInverse(etat):
-    etat_change = np.copy(etat)
-    for i in range(4):
-        un0, un1, un2, un3 = etat[0, i], etat[1, i], etat[2, i], etat[3, i]
-        etat_change[0, i] = format(multiplication_by_14[int(un0, 16)]^multiplication_by_11[int(un1, 16)]^multiplication_by_13[int(un2, 16)]^multiplication_by_9[int(un3, 16)])
-        etat_change[1, i] = format(multiplication_by_9[int(un0, 16)]^multiplication_by_14[int(un1, 16)]^multiplication_by_11[int(un2, 16)]^multiplication_by_13[int(un3, 16)])
-        etat_change[2, i] = format(multiplication_by_13[int(un0, 16)]^multiplication_by_9[int(un1, 16)]^multiplication_by_14[int(un2, 16)]^multiplication_by_11[int(un3, 16)])
-        etat_change[3, i] = format(multiplication_by_11[int(un0, 16)]^multiplication_by_13[int(un1, 16)]^multiplication_by_9[int(un2, 16)]^multiplication_by_14[int(un3, 16)])
-    return etat_change
 
 
 def AddRoundKey(etat, round):
@@ -275,44 +253,74 @@ def AddRoundKey(etat, round):
         etat_change[i] = XorWord(etat[i], round[i])
     return etat_change
 
-def AddRoundKeyInverse(etat,round):
-    pass
+def SubWordInverse(tab):
+    return np.array([format(Sbox.index(int(elem, 16))) for elem in tab])
 
-def encrypt(texte, key):
-    key = keyExpansion(key)
-    message_crypte = printState(texte)
+def subBytesInverse(etat):
+    etat_change =  np.copy(etat)
+    for i in range(len(etat_change)):
+        etat_change[i] = SubWordInverse(etat[i])
+    return etat_change
+
+
+def reverseState(key, pos_key, d_set):
+    r_bits = []
+    c = pos_key%4
+    l = (pos_key-c)//4
+    for elem in d_set:
+        x = XorBit(elem[l, c], key)
+        x = InverseBit(x)
+        r_bits.append(x)
+    return r_bits
+
+def checkKeyGuess(key, v_set):
+    result = '00'
+    for i in v_set:
+        result = XorBit(result, i)
+    return int(result, 16) == 0
+        
+    
+
+def EncryptWithRound(texte, key, round):
+    key = keyExpansion(key, round)
+    message_crypte = texte
     message_crypte = AddRoundKey(message_crypte, key[:, :4])
-    for i in range(1, 10):
+    for i in range(1, round):
         message_crypte = subBytes(message_crypte)
         message_crypte = ShiftRows(message_crypte)
         message_crypte = MixColumns(message_crypte)
         message_crypte = AddRoundKey(message_crypte, key[:, i*4:i*4+4])
     message_crypte = subBytes(message_crypte)
     message_crypte = ShiftRows(message_crypte)
-    message_crypte = AddRoundKey(message_crypte, key[:, -4:])
+    message_crypte = AddRoundKey(message_crypte, key[:, round*4:round*4+4])
     return message_crypte
 
 
 
-
-def decrypt(message_crypte, key):
-    key = keyExpansion(key)
-    message_crypte = AddRoundKey(message_crypte, key[:, -4:])
-    message_crypte = ShiftRowsInverse(message_crypte)
-    message_crypte = subBytesInverse(message_crypte)
-    for i in range(9, 0, -1):
-        message_crypte = AddRoundKey(message_crypte, key[:, i*4:i*4+4])
-        message_crypte = MixColumnsInverse(message_crypte)
-        message_crypte = ShiftRowsInverse(message_crypte)
-        message_crypte = subBytesInverse(message_crypte)
-    message_crypte = AddRoundKey(message_crypte, key[:, :4])
-    return printStateInverse(message_crypte)
+def setup(cleP):
+    x = format(random.randint(0, 255))
+    delta_set = np.array([[[format(i), x, x, x], [x, x, x, x], [x, x, x, x], [x, x, x, x]] for i in range(256)])
+    delta_set = np.array([EncryptWithRound(delta_set[i], cleP, 4) for i in range(len(delta_set))])
+    return delta_set
 
 
 
 
-        
 
+
+
+
+word = np.array(['00', '01', '10', '11'])
+
+cle = '000000000000000000000000000000aa'
+cle_ex= 'd6aa74fdd2af72fadaa678f1d6ab76fe'
+
+position = 5
+#keyExpansion(cle_ex, 3)
+deltat = setup(cle)
+guess = deltat[0][position%4, position//4]
+print(guess)
+checkKeyGuess(guess, reverseState(guess, position, deltat))
 
 
 
