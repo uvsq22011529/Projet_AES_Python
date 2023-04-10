@@ -309,14 +309,15 @@ def checkGuess(v_set):
 
 def checkKeyGuess(d_set, pos):
     position = (pos % 4, pos // 4)
-    for delta in d_set:
+    while True:
         validate_guess = []
         for guess in range(0x100):
-            v_set = reverseState(guess, position, delta)
+            v_set = reverseState(guess, position, d_set)
             if checkGuess(v_set):
                 validate_guess.append(guess)
         if len(validate_guess) == 1:
             break
+        d_set =
     return validate_guess[0]
 
 
