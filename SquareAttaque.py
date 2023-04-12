@@ -157,7 +157,7 @@ multiplication_by_14 = (
 cle = '2b7e151628aed2a6abf7158809cf4f3c'
 
 
-def format(entier):
+def format_hex(entier):
     "fonction qui met en format str notre hexa"
     temp = hex(entier)[2:]
     if len(temp) == 1:
@@ -177,16 +177,16 @@ def RotWordInversed(tab):
 
 def SubWord(tab):
     """Faire une substitution des elements du tableau a partir de la BD Sbox"""
-    return np.array([format(Sbox[int(elem, 16)]) for elem in tab])
+    return np.array([format_hex(Sbox[int(elem, 16)]) for elem in tab])
 
 
 def InverseBit(bit):
-    return format(Sbox.index(int(bit, 16)))
+    return format_hex(Sbox.index(int(bit, 16)))
 
 
 def Rcon(entier):
     """Retourne le rcon grace a la BD rcon"""
-    return np.array([format(rcon[entier]), format(0x00), format(0x00), format(0x00)])
+    return np.array([format_hex(rcon[entier]), format_hex(0x00), format_hex(0x00), format_hex(0x00)])
 
 
 def create_key(key):
@@ -195,18 +195,16 @@ def create_key(key):
 
 
 def XorBit(bit1, bit2):
-    """reotunr le Xor entre 2 bit"""
-    return format(int(bit1, 16) ^ int(bit2, 16))
+    return format_hex(int(bit1, 16) ^ int(bit2, 16))
 
 
 def XorWord(tab1, tab2):
     """Retourne le Xor entre les 2 element"""
-    return np.array([format(int(tab1[i], 16) ^ int(tab2[i], 16)) for i in range(4)])
+    return np.array([format_hex(int(tab1[i], 16) ^ int(tab2[i], 16)) for i in range(4)])
 
 
 def XorTab(tab1, tab2):
-    """Retourne le Xor entre 2 tableau"""
-    return np.array([[format(int(tab1[i][j], 16) ^ int(tab2[i][j], 16)) for i in range(4)] for j in range(4)])
+    return np.array([[format_hex(int(tab1[i][j], 16) ^ int(tab2[i][j], 16)) for i in range(4)] for j in range(4)])
 
 
 def keyExpansion(key, round):
@@ -228,7 +226,7 @@ def printState(text):
     """Transforme un texte en cle et le met sous format 4*4"""
     key = ""
     for i in text:
-        key += format(ord(i))
+        key += format_hex(ord(i))
     return create_key(key)
 
 
@@ -253,13 +251,13 @@ def MixColumns(etat):
     etat_change = np.copy(etat)
     for i in range(4):
         un0, un1, un2, un3 = etat[0, i], etat[1, i], etat[2, i], etat[3, i]
-        etat_change[0, i] = format(multiplication_by_2[int(
+        etat_change[0, i] = format_hex(multiplication_by_2[int(
             un0, 16)] ^ multiplication_by_3[int(un1, 16)] ^ int(un2, 16) ^ int(un3, 16))
-        etat_change[1, i] = format(int(un0, 16) ^ multiplication_by_2[int(
+        etat_change[1, i] = format_hex(int(un0, 16) ^ multiplication_by_2[int(
             un1, 16)] ^ multiplication_by_3[int(un2, 16)] ^ int(un3, 16))
-        etat_change[2, i] = format(int(un0, 16) ^ int(
+        etat_change[2, i] = format_hex(int(un0, 16) ^ int(
             un1, 16) ^ multiplication_by_2[int(un2, 16)] ^ multiplication_by_3[int(un3, 16)])
-        etat_change[3, i] = format(multiplication_by_3[int(un0, 16)] ^ int(
+        etat_change[3, i] = format_hex(multiplication_by_3[int(un0, 16)] ^ int(
             un1, 16) ^ int(un2, 16) ^ multiplication_by_2[int(un3, 16)])
     return etat_change
 
@@ -272,7 +270,7 @@ def AddRoundKey(etat, round):
 
 
 def SubWordInverse(tab):
-    return np.array([format(Sbox.index(int(elem, 16))) for elem in tab])
+    return np.array([format_hex(Sbox.index(int(elem, 16))) for elem in tab])
 
 
 def subBytesInverse(etat):
@@ -283,12 +281,18 @@ def subBytesInverse(etat):
 
 
 def reverseState(key, pos_key, d_set):
+    """_summary_
+
+    Args:
+        key (str): code hexa de la cle expension a la position pos_key
+        pos_key (tuple): position ligne, colonne de la cle sous forme de (x, y)
+        d_set (list): ensemble de 256 delta
+
+    Returns:
+        list: liste de r bits
+    """
     r_bits = []
-    # recupere la colonne de la cle
-    c = pos_key % 4
-    # recupere la ligne de la cle
-    l = pos_key//4
-    # apprend l'ensemble des octets inversée
+    l, c = pos_key
     for elem in d_set:
         x = XorBit(elem[l, c], key)
         x = InverseBit(x)
@@ -296,12 +300,25 @@ def reverseState(key, pos_key, d_set):
     return r_bits
 
 
-def checkKeyGuess(key, v_set):
+def checkGuess(v_set):
     result = '00'
     for i in v_set:
         result = XorBit(result, i)
-    if int(result, 16) == 0:
-        print(key)
+    return int(result, 16) == 0
+
+
+def checkKeyGuess(d_set, pos):
+    position = (pos % 4, pos // 4)
+    while True:
+        validate_guess = []
+        for guess in range(0x100):
+            v_set = reverseState(guess, position, d_set)
+            if checkGuess(v_set):
+                validate_guess.append(guess)
+        if len(validate_guess) == 1:
+            break
+        d_set =
+    return validate_guess[0]
 
 
 def EncryptWithRound(texte, key, round):
@@ -322,12 +339,9 @@ def EncryptWithRound(texte, key, round):
 
 
 def setup(cleP):
-    # declare une valeur inactive entre 0 et 255
-    x = format(random.randint(0, 255))
-    # construit le delta set
-%    delta_set = np.array([[[format(i), x, x, x], [x, x, x, x], [
+    x = format_hex(random.randint(0, 255))
+    delta_set = np.array([[[format_hex(i), x, x, x], [x, x, x, x], [
                          x, x, x, x], [x, x, x, x]] for i in range(256)])
-    # encrypt avec le nombre de round donnée le delta set
     delta_set = np.array([EncryptWithRound(delta_set[i], cleP, 4)
                          for i in range(len(delta_set))])
     return delta_set
@@ -338,9 +352,9 @@ word = np.array(['00', '01', '10', '11'])
 cle = '000000000000000000000000000000aa'
 cle_ex = 'd6aa74fdd2af72fadaa678f1d6ab76fe'
 
-position = 2
-#keyExpansion(cle_ex, 3)
 deltat = setup(cle)
-guess = deltat[0][position // 4, position % 4]
-print(guess)
-checkKeyGuess(guess, reverseState(guess, position, deltat))
+cle = []
+for i in range(16):
+    cle.append(format_hex(checkKeyGuess(deltat, i)))
+
+print(cle)

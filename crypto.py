@@ -156,7 +156,7 @@ multiplication_by_14 = (
 cle= '2b7e151628aed2a6abf7158809cf4f3c'
 
 
-def format(entier):
+def format_hex(entier):
     "fonction qui met en format str notre hexa"
     temp = hex(entier)[2:]
     if len(temp) == 1:
@@ -173,15 +173,15 @@ def RotWordInversed(tab):
 
 def SubWord(tab):
     """Faire une substitution des elements du tableau a partir de la BD Sbox"""
-    return np.array([format(Sbox[int(elem, 16)]) for elem in tab])
+    return np.array([format_hex(Sbox[int(elem, 16)]) for elem in tab])
 
 
 def SubWordInverse(tab):
-    return np.array([format(Sbox.index(int(elem, 16))) for elem in tab])
+    return np.array([format_hex(Sbox.index(int(elem, 16))) for elem in tab])
 
 def Rcon(entier):
     """Retourne le rcon grace a la BD rcon"""
-    return np.array([format(rcon[entier]), format(0x00), format(0x00), format(0x00)])
+    return np.array([format_hex(rcon[entier]), format_hex(0x00), format_hex(0x00), format_hex(0x00)])
 
 def create_key(key):
     """Prend une cle en argument et en ressort un tableau 4*4"""
@@ -189,7 +189,7 @@ def create_key(key):
 
 def XorWord(tab1, tab2):
     """Retourne le Xor entre les 2 element"""
-    return np.array([format(int(tab1[i],16)^int(tab2[i],16)) for i in range(4)])
+    return np.array([format_hex(int(tab1[i],16)^int(tab2[i],16)) for i in range(4)])
 
 
 
@@ -211,7 +211,7 @@ def printState(text):
     """Transforme un texte en cle et le met sous format 4*4"""
     key = ""
     for i in text:
-        key+= format(ord(i))
+        key+= format_hex(ord(i))
     return create_key(key)
 
 def printStateInverse(message_chiffre):
@@ -252,20 +252,20 @@ def MixColumns(etat):
     etat_change = np.copy(etat)
     for i in range(4):
         un0, un1, un2, un3 = etat[0, i], etat[1, i], etat[2, i], etat[3, i]
-        etat_change[0, i] = format(multiplication_by_2[int(un0, 16)]^multiplication_by_3[int(un1, 16)]^int(un2, 16)^int(un3, 16))
-        etat_change[1, i] = format(multiplication_by_2[int(un1, 16)]^multiplication_by_3[int(un2, 16)]^int(un0, 16)^int(un3, 16))
-        etat_change[2, i] = format(multiplication_by_2[int(un2, 16)]^multiplication_by_3[int(un3, 16)]^int(un0, 16)^int(un1, 16))
-        etat_change[3, i] = format(multiplication_by_2[int(un3, 16)]^multiplication_by_3[int(un0, 16)]^int(un2, 16)^int(un1, 16))
+        etat_change[0, i] = format_hex(multiplication_by_2[int(un0, 16)]^multiplication_by_3[int(un1, 16)]^int(un2, 16)^int(un3, 16))
+        etat_change[1, i] = format_hex(multiplication_by_2[int(un1, 16)]^multiplication_by_3[int(un2, 16)]^int(un0, 16)^int(un3, 16))
+        etat_change[2, i] = format_hex(multiplication_by_2[int(un2, 16)]^multiplication_by_3[int(un3, 16)]^int(un0, 16)^int(un1, 16))
+        etat_change[3, i] = format_hex(multiplication_by_2[int(un3, 16)]^multiplication_by_3[int(un0, 16)]^int(un2, 16)^int(un1, 16))
     return etat_change
 
 def MixColumnsInverse(etat):
     etat_change = np.copy(etat)
     for i in range(4):
         un0, un1, un2, un3 = etat[0, i], etat[1, i], etat[2, i], etat[3, i]
-        etat_change[0, i] = format(multiplication_by_14[int(un0, 16)]^multiplication_by_11[int(un1, 16)]^multiplication_by_13[int(un2, 16)]^multiplication_by_9[int(un3, 16)])
-        etat_change[1, i] = format(multiplication_by_9[int(un0, 16)]^multiplication_by_14[int(un1, 16)]^multiplication_by_11[int(un2, 16)]^multiplication_by_13[int(un3, 16)])
-        etat_change[2, i] = format(multiplication_by_13[int(un0, 16)]^multiplication_by_9[int(un1, 16)]^multiplication_by_14[int(un2, 16)]^multiplication_by_11[int(un3, 16)])
-        etat_change[3, i] = format(multiplication_by_11[int(un0, 16)]^multiplication_by_13[int(un1, 16)]^multiplication_by_9[int(un2, 16)]^multiplication_by_14[int(un3, 16)])
+        etat_change[0, i] = format_hex(multiplication_by_14[int(un0, 16)]^multiplication_by_11[int(un1, 16)]^multiplication_by_13[int(un2, 16)]^multiplication_by_9[int(un3, 16)])
+        etat_change[1, i] = format_hex(multiplication_by_9[int(un0, 16)]^multiplication_by_14[int(un1, 16)]^multiplication_by_11[int(un2, 16)]^multiplication_by_13[int(un3, 16)])
+        etat_change[2, i] = format_hex(multiplication_by_13[int(un0, 16)]^multiplication_by_9[int(un1, 16)]^multiplication_by_14[int(un2, 16)]^multiplication_by_11[int(un3, 16)])
+        etat_change[3, i] = format_hex(multiplication_by_11[int(un0, 16)]^multiplication_by_13[int(un1, 16)]^multiplication_by_9[int(un2, 16)]^multiplication_by_14[int(un3, 16)])
     return etat_change
 
 
