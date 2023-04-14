@@ -292,9 +292,8 @@ def reverseState(key, pos_key, d_set):
         list: liste de r bits
     """
     r_bits = []
-    l, c = pos_key
     for elem in d_set:
-        x = XorBit(elem[l, c], key)
+        x = XorBit(elem[pos_key], key)
         x = InverseBit(x)
         r_bits.append(x)
     return r_bits
@@ -306,20 +305,24 @@ def checkGuess(v_set):
         result = XorBit(result, i)
     return int(result, 16) == 0
 
-
+def checkKeyGuess(key, v_set):
+    result = '00'
+    for i in v_set:
+        result = XorBit(result, i)
+    return (int(result, 16) == 0)
+    
+"""
 def checkKeyGuess(d_set, pos):
     position = (pos % 4, pos // 4)
-    while True:
-        validate_guess = []
-        for guess in range(0x100):
-            v_set = reverseState(guess, position, d_set)
-            if checkGuess(v_set):
-                validate_guess.append(guess)
-        if len(validate_guess) == 1:
-            break
-        d_set =
+    validate_guess = []
+    for guess in range(0x100):
+        v_set = reverseState(guess, position, d_set)
+        if checkGuess(v_set):
+            validate_guess.append(guess)
     return validate_guess[0]
 
+"""
+    
 
 def EncryptWithRound(texte, key, round):
     """Encrypt le texte avec la cle et le nombre de round"""
@@ -353,8 +356,36 @@ cle = '000000000000000000000000000000aa'
 cle_ex = 'd6aa74fdd2af72fadaa678f1d6ab76fe'
 
 deltat = setup(cle)
-cle = []
-for i in range(16):
-    cle.append(format_hex(checkKeyGuess(deltat, i)))
 
-print(cle)
+
+
+def attaque(cle='000000000000000000000000000000aa'):
+    key = []
+    for pos in range(16):
+        index= (pos % 4, pos // 4)
+        while True:
+            d_set = setup(cle)
+            validate_guess = []
+            for guess in range(256):
+                guess_hex = format_hex(guess)
+                v_set = reverseState(guess_hex, index, d_set)
+                if checkGuess(v_set):
+                    validate_guess.append(guess_hex)
+            if len(validate_guess) == 1:
+                break
+        key.append(validate_guess[0])
+    return np.array(key).reshape((4, 4), order='F')
+
+
+def InvertKeyExpansion(index, cle_ronde):
+    for i in range(index-1, 0, -1):
+        for _ in range(3):
+            cle_ronde = np.c_[XorWord(cle_ronde[:, 2], cle_ronde[:, 3]), cle_ronde]
+        x = cle_ronde[:, 2]
+        x = RotWord(x)
+        x = SubWord(x)
+        x = XorWord(XorWord(cle_ronde[:, 3], Rcon(i)), x)
+        cle_ronde = np.c_(x, cle_ronde)
+    return cle_ronde
+
+print(InvertKeyExpansion(4, attaque()))

@@ -1,88 +1,22 @@
 import numpy as np
-import random
 
-
-Sbox = (
-    0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
-    0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
-    0xB7, 0xFD, 0x93, 0x26, 0x36, 0x3F, 0xF7, 0xCC, 0x34, 0xA5, 0xE5, 0xF1, 0x71, 0xD8, 0x31, 0x15,
-    0x04, 0xC7, 0x23, 0xC3, 0x18, 0x96, 0x05, 0x9A, 0x07, 0x12, 0x80, 0xE2, 0xEB, 0x27, 0xB2, 0x75,
-    0x09, 0x83, 0x2C, 0x1A, 0x1B, 0x6E, 0x5A, 0xA0, 0x52, 0x3B, 0xD6, 0xB3, 0x29, 0xE3, 0x2F, 0x84,
-    0x53, 0xD1, 0x00, 0xED, 0x20, 0xFC, 0xB1, 0x5B, 0x6A, 0xCB, 0xBE, 0x39, 0x4A, 0x4C, 0x58, 0xCF,
-    0xD0, 0xEF, 0xAA, 0xFB, 0x43, 0x4D, 0x33, 0x85, 0x45, 0xF9, 0x02, 0x7F, 0x50, 0x3C, 0x9F, 0xA8,
-    0x51, 0xA3, 0x40, 0x8F, 0x92, 0x9D, 0x38, 0xF5, 0xBC, 0xB6, 0xDA, 0x21, 0x10, 0xFF, 0xF3, 0xD2,
-    0xCD, 0x0C, 0x13, 0xEC, 0x5F, 0x97, 0x44, 0x17, 0xC4, 0xA7, 0x7E, 0x3D, 0x64, 0x5D, 0x19, 0x73,
-    0x60, 0x81, 0x4F, 0xDC, 0x22, 0x2A, 0x90, 0x88, 0x46, 0xEE, 0xB8, 0x14, 0xDE, 0x5E, 0x0B, 0xDB,
-    0xE0, 0x32, 0x3A, 0x0A, 0x49, 0x06, 0x24, 0x5C, 0xC2, 0xD3, 0xAC, 0x62, 0x91, 0x95, 0xE4, 0x79,
-    0xE7, 0xC8, 0x37, 0x6D, 0x8D, 0xD5, 0x4E, 0xA9, 0x6C, 0x56, 0xF4, 0xEA, 0x65, 0x7A, 0xAE, 0x08,
-    0xBA, 0x78, 0x25, 0x2E, 0x1C, 0xA6, 0xB4, 0xC6, 0xE8, 0xDD, 0x74, 0x1F, 0x4B, 0xBD, 0x8B, 0x8A,
-    0x70, 0x3E, 0xB5, 0x66, 0x48, 0x03, 0xF6, 0x0E, 0x61, 0x35, 0x57, 0xB9, 0x86, 0xC1, 0x1D, 0x9E,
-    0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
-    0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
-)
-
-
-def format(entier):
+def format_hex(entier):
     "fonction qui met en format str notre hexa"
     temp = hex(entier)[2:]
     if len(temp) == 1:
         temp = '0' + temp
     return temp
 
-
-def SubWord(tab):
-    """Faire une substitution des elements du tableau a partir de la BD Sbox"""
-    return np.array([format(Sbox[int(elem, 16)]) for elem in tab])
-
-
-def subBytes(etat):
-    """Nous fais une substitution de chaque element de notre etat"""
-    etat_change = np.copy(etat)
-    for i in range(len(etat_change)):
-        etat_change[i] = SubWord(etat[i])
-    return etat_change
-
-
-def ShiftRows(etat):
-    """Nous fais une rotation horizontal de i en fonction de la ligne i de notre etat"""
-    etat_change = np.copy(etat)
-    for i in range(len(etat)):
-        etat_change[i] = np.roll(etat[i], -i)
-    return etat_change
-
-
-def inverseWord(etat):
-    return np.array([InverseBit(elem) for elem in etat])
-
-
 def XorBit(bit1, bit2):
-    return format(int(bit1, 16) ^ int(bit2, 16))
+    return format_hex(int(bit1, 16) ^ int(bit2, 16))
 
+def checkKeyGuess(key, v_set):
+    result = '00'
+    for i in v_set:
+        result = XorBit(result, i)
+        print(result)
+    print(int(result, 16) == 0)
 
-def InverseBit(bit):
-    return format(Sbox.index(int(bit, 16)))
+listeeee = ['58', '7e', 'cf', '1f', '30', 'de', 'ab', 'e2', 'a5', 'e0', 'b7', '6c', '50', '2e', '7b', '48', '3c', '1c', 'e9', '5d', '6a', '59', '97', '4d', '24', 'd0', 'fd', 'f8', '50', '0e', 'dc', '77', '50', '6e', '6d', 'b6', '60', '05', '5f', 'ae', '2f', 'b6', 'fc', '81', '42', 'df', 'a1', '5c', '69', 'ec', 'e7', '4d', 'cf', 'f4', '2a', '8a', 'ed', '04', '0b', 'dd', 'a8', 'e0', '3e', '35', '7c', '99', '54', 'cd', 'fd', '5c', 'd5', '17', '90', '43', '56', 'eb', '24', '9b', '8d', 'ed', 'eb', 'be', 'c1', '69', '11', 'ad', '7a', '4b', 'e7', '73', '48', 'eb', 'a7', '77', '31', '8c', '79', '7d', 'd7', '47', '20', 'c2', '21', '19', 'db', 'e9', 'ff', 'b8', '10', 'a3', 'c9', '7a', '03', '70', '7b', 'e6', '87', '3d', 'dd', 'd8', '65', 'e5', 'b6', '40', 'b2', 'bf', '54', '32', 'a1', 'e6', '6c', 'c3', 'b3', '3c', 'a2', 'b5', '22', '3c', '21', '50', 'b7', 'd1', 'f4', 'df', '8c', 'b4', '1f', '29', '8e', '99', '24', '40', '86', '98', '6a', '29', 'f7', '4c', '77', '71', 'db', '98', '08', '18', 'af', 'd8', '72', 'c5', '10', 'cd', '28', 'e3', 'a3', 'f5', '54', 'bb', '21', 'b0', 'c3', 'a3', '8c', '7e', 'c4', '65', '19', '27', 'c9', '6d', '02', 'd6', '11', '6d', '4b', 'ab', '2d', '43', 'c6', '6e', 'c6', '1c', '4e', '7f', '0e', 'e1', '78', '26', '57', 'da', 'f9', '99', 'c4', 'ba', '3d', 'e1', '2d', 'ed', '39', '78', '50', 'b1', 'af', '46', 'bb', '63', 'bc', '86', '6a', '20', 'c9', 'f8', '6f', '95', 'f5', '74', '25', '27', '77', 'e3', '57', 'e5', '14', 'a0', 'b7', '88', '5b', '0a', '34', '40', '2c', 'b3', '60', '4e', '35', '1b', '11', '30']
 
-
-def reverseState(key, pos_key, d_set):
-    r_bits = []
-    c = pos_key % 4
-    l = (pos_key-c)//4
-    for elem in d_set:
-        x = XorBit(elem[l, c], key)
-        x = InverseBit(x)
-        r_bits.append(x)
-    return r_bits
-
-
-def create_key(key):
-    """Prend une cle en argument et en ressort un tableau 4*4"""
-    return np.array([key[i]+key[i+1] for i in range(0, len(key), 2)]).reshape(4, 4, order='F')
-
-
-x = '00010203040506070809101112131415'
-
-x = create_key(x)
-print(x)
-pos = 8
-position = (pos % 4, pos//4)
-print(x[position])
+checkKeyGuess(10, listeeee)
