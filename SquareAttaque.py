@@ -378,14 +378,14 @@ def attaque(cle='000000000000000000000000000000aa'):
 
 
 def InvertKeyExpansion(index, cle_ronde):
-    for i in range(index-1, 0, -1):
+    for i in range(index, 0, -1):
         for _ in range(3):
             cle_ronde = np.c_[XorWord(cle_ronde[:, 2], cle_ronde[:, 3]), cle_ronde]
         x = cle_ronde[:, 2]
         x = RotWord(x)
         x = SubWord(x)
         x = XorWord(XorWord(cle_ronde[:, 3], Rcon(i)), x)
-        cle_ronde = np.c_(x, cle_ronde)
+        cle_ronde = np.c_[x, cle_ronde]
     return cle_ronde
 
 print(InvertKeyExpansion(4, attaque()))
