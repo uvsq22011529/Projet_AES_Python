@@ -470,6 +470,6 @@ def InvertKeyExpansion(index, cle_ronde):
         x = SubWord(x)
         x = XorWord(XorWord(cle_ronde[:, 3], Rcon(i)), x)
         cle_ronde = np.c_[x, cle_ronde]
-    return cle_ronde
+    return cle_ronde[:, 0:4]
 
 print(InvertKeyExpansion(4, attaque()))
