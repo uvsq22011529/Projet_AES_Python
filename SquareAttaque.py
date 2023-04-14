@@ -158,57 +158,141 @@ cle = '2b7e151628aed2a6abf7158809cf4f3c'
 
 
 def format_hex(entier):
-    "fonction qui met en format str notre hexa"
-    temp = hex(entier)[2:]
+    """change un entier en string hexa
+
+    Args:
+        entier (int): hexa en entier
+
+    Returns:
+        str: hexa en string
+    """
+    temp = hex(entier)[2:] #Transforme l'entier en hexa et recupere le str sans le '0x'
     if len(temp) == 1:
-        temp = '0' + temp
+        temp = '0' + temp #rajoute un 0 si la valeur hexa est en desous de 10
     return temp
 
 
 def RotWord(tab):
-    """Fais une rotation du tableau"""
+    """Fait une rotation des 4 octets
+
+    Args:
+        tab (np.array): valeur de 4 octets
+
+    Returns:
+        np.array: rotation des 4 octets
+    """
     return np.roll(tab, -1)
 
 
 def RotWordInversed(tab):
-    """Fais une rotation inversee du tableau"""
+    """Fait une rotation inverse des 4 octets
+
+    Args:
+        tab (np.array): rotation de 4 octets
+
+    Returns:
+        np.array: valeur des 4 octets
+    """
     return np.roll(tab, 1)
 
 
 def SubWord(tab):
-    """Faire une substitution des elements du tableau a partir de la BD Sbox"""
+    """Faire une substitution des elements du tableau a partir de la BD Sbox
+
+    Args:
+        tab (np.array): tableau avant la substitution
+
+    Returns:
+        np.array: tableau apres la substitution
+    """
     return np.array([format_hex(Sbox[int(elem, 16)]) for elem in tab])
 
 
 def InverseBit(bit):
+    """_summary_
+
+    Args:
+        bit (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     return format_hex(Sbox.index(int(bit, 16)))
 
 
 def Rcon(entier):
-    """Retourne le rcon grace a la BD rcon"""
+    """fonction d'assistance Rcon : Retourne le rcon grace a la BD rcon
+
+    Args:
+        entier (int): entier
+
+    Returns:
+        np.array: tableau de 4 octets avec les 3 octets les moins significatifs mis à 0
+    """
     return np.array([format_hex(rcon[entier]), format_hex(0x00), format_hex(0x00), format_hex(0x00)])
 
 
 def create_key(key):
-    """Prend une cle en argument et en ressort un tableau 4*4"""
+    """cree un array avec la cle passe en argument
+
+    Args:
+        key (str): cle de taille 32 en str 
+
+    Returns:
+        np.array: tableau de taille 4*4
+    """
     return np.array([key[i]+key[i+1] for i in range(0, len(key), 2)]).reshape(4, 4, order='F')
 
 
 def XorBit(bit1, bit2):
+    """fais le xor entre deux bits
+
+    Args:
+        bit1 (str): premier bit en hexa sous forme str
+        bit2 (str): second bit en hexa sous forme str
+
+    Returns:
+        str: xor des deux bit en hexa sous forme str
+    """
     return format_hex(int(bit1, 16) ^ int(bit2, 16))
 
 
 def XorWord(tab1, tab2):
-    """Retourne le Xor entre les 2 element"""
+    """fais le xor de tout les bits de deux tableaux
+
+    Args:
+        tab1 (np.array): tableau de bit hexa sous forme str
+        tab2 (np.array): tableau de bit hexa sous forme str
+
+    Returns:
+        np.array: tableau de xor des deux tableaux passé en arg
+    """
     return np.array([format_hex(int(tab1[i], 16) ^ int(tab2[i], 16)) for i in range(4)])
 
 
 def XorTab(tab1, tab2):
+    """fais le xor de tout les bits de deux matrices
+
+    Args:
+        tab1 (np.array): matrice de bit hexa sous forme str
+        tab2 (np.array): matrice de bit hexa sous forme str
+
+    Returns:
+        np.array: matrice de xor des deux matrices passé en arg
+    """
     return np.array([[format_hex(int(tab1[i][j], 16) ^ int(tab2[i][j], 16)) for i in range(4)] for j in range(4)])
 
 
 def keyExpansion(key, round):
-    """S'occupe de cree l'expansion d'une cle en fonction des tours"""
+    """S'occupe de cree l'expansion d'une cle en fonction des tours
+
+    Args:
+        key (str): cle a expendre
+        round (int): nombre de tour
+
+    Returns:
+        np.array: cle expendue
+    """
     the_key = create_key(key)
     for i in range(1, round+1):
         x = the_key[:, -1]  # Recuperre la derniere colonne de la cle
