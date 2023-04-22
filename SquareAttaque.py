@@ -494,7 +494,7 @@ word = np.array(['00', '01', '10', '11'])
 cle = '000000000000000000000000000000aa'
 cle_ex = 'd6aa74fdd2af72fadaa678f1d6ab76fe'
 
-deltats = [setup(cle)[1] for _ in range(10)]
+deltats = [setup(cle) for _ in range(10)]
 
 
 """
@@ -566,13 +566,13 @@ def attaque(tab couple claire chiffre):
 """
 
 def attaque(DeltaSets):
-    """Fais l'attaque aes sur un ensemble de delta set chiffre
+    """casse l'aes pour un tour 4 et si le clair encrypter egale au chiffré retourne la clé
 
     Args:
-        DeltaSets (List): ensemble de delta set chiffré 
+        DeltaSets (List): ensemble de delta set clair/chiffré 
 
     Returns:
-        np.array: la clé au 4eme round
+        np.array: la clé
     """
     cle_expend = []
     for pos in range(16):
@@ -581,13 +581,16 @@ def attaque(DeltaSets):
             validate_guess = []
             for guess in range(0x100):
                 guessHex = format_hex(guess)
-                reversed_bytes = reverseState(guessHex, index, DeltaSet)
+                reversed_bytes = reverseState(guessHex, index, DeltaSet[1])
                 if checkGuess(reversed_bytes):
                     validate_guess.append(guessHex)
             if len(validate_guess) == 1:
                 break
         cle_expend.append(validate_guess[0])
-    return np.array(cle_expend).reshape((4, 4), order='F')
+    cle = InvertKeyExpansion(4, np.array(cle_expend).reshape((4, 4), order='F'))
+    if EncryptWithRound(DeltaSets[0][0][0], cle, 4) == DeltaSets[0][1][0]:
+        return cle
 
+cle_trouve = attaque(deltats)
 
-print(InvertKeyExpansion(4, attaque(deltats)))
+print(cle_trouve)
