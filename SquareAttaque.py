@@ -307,7 +307,14 @@ def keyExpansion(key, round):
 
 
 def printState(text):
-    """Transforme un texte en cle et le met sous format 4*4"""
+    """transforme le text en cle et le renvoi a la fonction create key
+
+    Args:
+        text (str): le texte en claire
+
+    Returns:
+        np.array: le tableau de la cle en hexa 
+    """
     key = ""
     for i in text:
         key += format_hex(ord(i))
@@ -315,7 +322,14 @@ def printState(text):
 
 
 def subBytes(etat):
-    """Nous fais une substitution de chaque element de notre etat"""
+    """nous fais subword sur tout les element de l'etat
+
+    Args:
+        etat (np.array): etat avant la substitution
+
+    Returns:
+        np.array: etat changer
+    """
     etat_change = np.copy(etat)
     for i in range(len(etat_change)):
         etat_change[i] = SubWord(etat[i])
@@ -323,7 +337,14 @@ def subBytes(etat):
 
 
 def ShiftRows(etat):
-    """Nous fais une rotation horizontal de i en fonction de la ligne i de notre etat"""
+    """Applique le shift sur l'etat actuelle
+
+    Args:
+        etat (np.array): etat avant le shift
+
+    Returns:
+        np.array: etat apres le shift
+    """
     etat_change = np.copy(etat)
     for i in range(len(etat)):
         etat_change[i] = np.roll(etat[i], -i)
@@ -331,7 +352,14 @@ def ShiftRows(etat):
 
 
 def MixColumns(etat):
-    """Nous fais un """
+    """Applique le MixColumns sur l'etat actuelle
+
+    Args:
+        etat (np.array): etat avant le MixColumns
+
+    Returns:
+        np.array: etat apres le MixColumns
+    """
     etat_change = np.copy(etat)
     for i in range(4):
         un0, un1, un2, un3 = etat[0, i], etat[1, i], etat[2, i], etat[3, i]
@@ -347,13 +375,31 @@ def MixColumns(etat):
 
 
 def AddRoundKey(etat, round):
+    """Applique le AddRoundKey sur l'etat
+
+    Args:
+        etat (np.array): etat avant le AddRoundKey
+        round (int): Tour actuelle
+
+    Returns:
+        np.array: etat apres le AddRoundKey
+    """
     etat_change = np.copy(etat)
     for i in range(len(etat)):
+        #Xor sur tout les element de l'etat
         etat_change[i] = XorWord(etat[i], round[i])
     return etat_change
 
 
 def SubWordInverse(tab):
+    """Applique SubWordInverse sur l'etat
+
+    Args:
+        tab (np.array): etat actuelle
+
+    Returns:
+        np.array: etat apres le SubWordInverse
+    """
     return np.array([format_hex(Sbox.index(int(elem, 16))) for elem in tab])
 
 
@@ -426,12 +472,21 @@ def EncryptWithRound(texte, key, round):
 
 
 def setup(cleP):
+    """recupere une cle et renvoi un delta couple clair chiffre
+
+    Args:
+        cleP (np.array): cle a trouver
+
+    Returns:
+        tab: delta_set_claire
+        tab : delta_set_chiffre
+    """
     x = format_hex(random.randint(0, 255))
-    delta_set = np.array([[[format_hex(i), x, x, x], [x, x, x, x], [
+    delta_set_clair = np.array([[[format_hex(i), x, x, x], [x, x, x, x], [
                          x, x, x, x], [x, x, x, x]] for i in range(256)])
-    delta_set = np.array([EncryptWithRound(delta_set[i], cleP, 4)
-                         for i in range(len(delta_set))])
-    return delta_set
+    delta_set_chiffre = np.array([EncryptWithRound(delta_set_clair[i], cleP, 4)
+                         for i in range(len(delta_set_clair))])
+    return delta_set_clair, delta_set_chiffre
 
 
 word = np.array(['00', '01', '10', '11'])
@@ -439,29 +494,46 @@ word = np.array(['00', '01', '10', '11'])
 cle = '000000000000000000000000000000aa'
 cle_ex = 'd6aa74fdd2af72fadaa678f1d6ab76fe'
 
-deltat = setup(cle)
+deltats = [setup(cle)[1] for _ in range(10)]
 
 
+"""
+def attaque(deltat):
+    attaque contre l'AES
 
-def attaque(cle='000000000000000000000000000000aa'):
+    Args:
+        deltat (tab): couple delta de claire chiffre
+
+    Returns:
+        np.array: cle trouvé
+    
+    claires, chiffres = deltat
     key = []
     for pos in range(16):
         index= (pos % 4, pos // 4)
         while True:
-            d_set = setup(cle)
             validate_guess = []
             for guess in range(256):
                 guess_hex = format_hex(guess)
-                v_set = reverseState(guess_hex, index, d_set)
+                v_set = reverseState(guess_hex, index, chiffres)
                 if checkGuess(v_set):
                     validate_guess.append(guess_hex)
             if len(validate_guess) == 1:
                 break
         key.append(validate_guess[0])
-    return np.array(key).reshape((4, 4), order='F')
+    return np.array(key).reshape((4, 4), order='F')"""
 
 
 def InvertKeyExpansion(index, cle_ronde):
+    """Inversion de la Cle expended
+
+    Args:
+        index (int): nombre de tour
+        cle_ronde (np.array): cle_round au index tour
+
+    Returns:
+        np.array: cle principale
+    """
     for i in range(index, 0, -1):
         for _ in range(3):
             cle_ronde = np.c_[XorWord(cle_ronde[:, 2], cle_ronde[:, 3]), cle_ronde]
@@ -472,4 +544,42 @@ def InvertKeyExpansion(index, cle_ronde):
         cle_ronde = np.c_[x, cle_ronde]
     return cle_ronde[:, 0:4]
 
-print(InvertKeyExpansion(4, attaque()))
+
+
+
+
+"""
+generer une cle des le debut qu'on ne connais pas
+on la stock sans l'afficher
+
+demander a l'aes 
+generer 256 claire chiffre
+faire l'attaque, l'attaque decouvre une cle 
+et a la fin on regard si c'est la bonne cle 
+
+il nous faut un couple claire / chiffre
+la machine nous fais 256 couple de claire/chiffre
+
+
+def attaque(tab couple claire chiffre):
+
+"""
+
+def attaque(DeltaSets):
+    cle_expend = []
+    for pos in range(16):
+        index= (pos % 4, pos // 4)
+        for DeltaSet in DeltaSets:
+            validate_guess = []
+            for guess in range(0x100):
+                guessHex = format_hex(guess)
+                reversed_bytes = reverseState(guessHex, index, DeltaSet)
+                if checkGuess(reversed_bytes):
+                    validate_guess.append(guessHex)
+            if len(validate_guess) == 1:
+                break
+        cle_expend.append(validate_guess[0])
+    return np.array(cle_expend).reshape((4, 4), order='F')
+
+
+print(InvertKeyExpansion(4, attaque(deltats)))
