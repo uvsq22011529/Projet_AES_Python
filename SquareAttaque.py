@@ -566,6 +566,14 @@ def attaque(tab couple claire chiffre):
 """
 
 def attaque(DeltaSets):
+    """Fais l'attaque aes sur un ensemble de delta set chiffre
+
+    Args:
+        DeltaSets (List): ensemble de delta set chiffré 
+
+    Returns:
+        np.array: la clé au 4eme round
+    """
     cle_expend = []
     for pos in range(16):
         index= (pos % 4, pos // 4)
