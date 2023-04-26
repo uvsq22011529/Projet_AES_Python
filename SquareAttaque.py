@@ -155,8 +155,6 @@ multiplication_by_14 = (
     0xd7, 0xd9, 0xcb, 0xc5, 0xef, 0xe1, 0xf3, 0xfd, 0xa7, 0xa9, 0xbb, 0xb5, 0x9f, 0x91, 0x83, 0x8d
 )
 
-cle = '2b7e151628aed2a6abf7158809cf4f3c'
-
 
 def format_hex(entier):
     """change un entier en string hexa
@@ -421,6 +419,14 @@ def SubWordInverse(tab):
 
 
 def subBytesInverse(etat):
+    """Applique subBytesInverse sur l'etat
+
+    Args:
+        etat (np.array): etat actuelle
+
+    Returns:
+        np.array: etat apres le subBytesInverse
+    """
     etat_change = np.copy(etat)
     for i in range(len(etat_change)):
         etat_change[i] = SubWordInverse(etat[i])
@@ -447,32 +453,31 @@ def reverseState(key, pos_key, d_set):
 
 
 def checkGuess(v_set):
+    """fais le xor sur tout les elements du l'ensemble des valeurs renvoyer par ReverseState
+
+    Args:
+        v_set (List): ensemble de bits retourné
+
+    Returns:
+        Boolean: renvoi True si la somme des valeurs == 0
+    """
     result = '00'
     for i in v_set:
         result = XorBit(result, i)
     return int(result, 16) == 0
-
-def checkKeyGuess(key, v_set):
-    result = '00'
-    for i in v_set:
-        result = XorBit(result, i)
-    return (int(result, 16) == 0)
-    
-"""
-def checkKeyGuess(d_set, pos):
-    position = (pos % 4, pos // 4)
-    validate_guess = []
-    for guess in range(0x100):
-        v_set = reverseState(guess, position, d_set)
-        if checkGuess(v_set):
-            validate_guess.append(guess)
-    return validate_guess[0]
-
-"""
     
 
 def EncryptWithRound(texte, key, round):
-    """Encrypt le texte avec la cle et le nombre de round"""
+    """Encrypt le texte avec la cle et le nombre de round
+
+    Args:
+        texte (str): message claire
+        key (str): cle donne a la achine
+        round (int): nombre de tour sur lequel encrypter
+
+    Returns:
+        np.array: message crypte
+    """
     # Fait l'expension de la cle
     key = keyExpansion(key, round)
     message_crypte = texte
@@ -506,40 +511,6 @@ def setup(cleP):
     return delta_set_clair, delta_set_chiffre
 
 
-word = np.array(['00', '01', '10', '11'])
-
-cle = '000000000000000000000000000000aa'
-cle_ex = 'D7A9F0B6AAC324FFE00BCEF1736ABCE7'
-
-deltats = [setup(cle_ex) for _ in range(10)]
-
-
-"""
-def attaque(deltat):
-    attaque contre l'AES
-
-    Args:
-        deltat (tab): couple delta de claire chiffre
-
-    Returns:
-        np.array: cle trouvé
-    
-    claires, chiffres = deltat
-    key = []
-    for pos in range(16):
-        index= (pos % 4, pos // 4)
-        while True:
-            validate_guess = []
-            for guess in range(256):
-                guess_hex = format_hex(guess)
-                v_set = reverseState(guess_hex, index, chiffres)
-                if checkGuess(v_set):
-                    validate_guess.append(guess_hex)
-            if len(validate_guess) == 1:
-                break
-        key.append(validate_guess[0])
-    return np.array(key).reshape((4, 4), order='F')"""
-
 
 def InvertKeyExpansion(index, cle_ronde):
     """Inversion de la Cle expended
@@ -561,26 +532,6 @@ def InvertKeyExpansion(index, cle_ronde):
         cle_ronde = np.c_[x, cle_ronde]
     return cle_ronde[:, 0:4]
 
-
-
-
-
-"""
-generer une cle des le debut qu'on ne connais pas
-on la stock sans l'afficher
-
-demander a l'aes 
-generer 256 claire chiffre
-faire l'attaque, l'attaque decouvre une cle 
-et a la fin on regard si c'est la bonne cle 
-
-il nous faut un couple claire / chiffre
-la machine nous fais 256 couple de claire/chiffre
-
-
-def attaque(tab couple claire chiffre):
-
-"""
 
 def attaque(DeltaSets):
     """casse l'aes pour un tour 4 et si le clair encrypter egale au chiffré retourne la clé
@@ -608,6 +559,9 @@ def attaque(DeltaSets):
     if np.array_equiv(EncryptWithRound(DeltaSets[0][0][0], cle, 4), DeltaSets[0][1][0]):
         return cle
 
-cle_trouve = attaque(deltats)
 
-print(cle_trouve)
+cle_test = '000000000000000000000000000000aa'
+
+deltats = [setup(cle_test) for _ in range(10)]
+
+print(attaque(deltats))
