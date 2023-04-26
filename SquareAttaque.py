@@ -1,3 +1,4 @@
+# coding=utf-8
 import numpy as np
 import random
 
@@ -232,6 +233,7 @@ def Rcon(entier):
     return np.array([format_hex(rcon[entier]), format_hex(0x00), format_hex(0x00), format_hex(0x00)])
 
 
+
 def create_key(key):
     """cree un array avec la cle passe en argument
 
@@ -242,6 +244,21 @@ def create_key(key):
         np.array: tableau de taille 4*4
     """
     return np.array([key[i]+key[i+1] for i in range(0, len(key), 2)]).reshape(4, 4, order='F')
+
+def create_key_inversed(key):
+    """retourne le str de la cle numpy
+
+    Args:
+        key (np.array): cle sous forme numpy
+
+    Returns:
+        str: cle sous forme str
+    """
+    key_inverse = ""
+    for i in range(4):
+        for j in range(4):
+            key_inverse += key[j, i]
+    return key_inverse
 
 
 def XorBit(bit1, bit2):
@@ -492,9 +509,9 @@ def setup(cleP):
 word = np.array(['00', '01', '10', '11'])
 
 cle = '000000000000000000000000000000aa'
-cle_ex = 'd6aa74fdd2af72fadaa678f1d6ab76fe'
+cle_ex = 'D7A9F0B6AAC324FFE00BCEF1736ABCE7'
 
-deltats = [setup(cle) for _ in range(10)]
+deltats = [setup(cle_ex) for _ in range(10)]
 
 
 """
@@ -587,8 +604,8 @@ def attaque(DeltaSets):
             if len(validate_guess) == 1:
                 break
         cle_expend.append(validate_guess[0])
-    cle = InvertKeyExpansion(4, np.array(cle_expend).reshape((4, 4), order='F'))
-    if EncryptWithRound(DeltaSets[0][0][0], cle, 4) == DeltaSets[0][1][0]:
+    cle = create_key_inversed(InvertKeyExpansion(4, np.array(cle_expend).reshape((4, 4), order='F')))
+    if np.array_equiv(EncryptWithRound(DeltaSets[0][0][0], cle, 4), DeltaSets[0][1][0]):
         return cle
 
 cle_trouve = attaque(deltats)
