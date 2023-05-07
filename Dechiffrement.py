@@ -119,3 +119,9 @@ def decrypt(message_crypte, key):
         message_crypte = subBytesInverse(message_crypte)
     message_crypte = AddRoundKey(message_crypte, key[:, :4])
     return printStateInverse(message_crypte)
+
+# Test de la fonction déchiffrement
+texte = 'This is one text'
+message_crypte = encrypt(texte, key)
+key = '2b7e151628aed2a6abf7158809cf4f3c'
+print('Le message déchiffré obtenu est :\n', decrypt(message_crypte, key))

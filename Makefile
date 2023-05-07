@@ -16,7 +16,7 @@ encrypt:
 	$(PYTHON) Chiffrement.py
 
 decrypt:
-	$(PYTHON) Déchiffrement.py
+	$(PYTHON) Dechiffrement.py
 
 # Nettoyage des fichiers générés
 clean:
