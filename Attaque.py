@@ -1,8 +1,10 @@
 # coding=utf-8
 import numpy as np
 import random
+from Dechiffrement import*
+from Chiffrement import*
 
-
+# Table de substitution
 Sbox = (
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
     0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
@@ -22,6 +24,7 @@ Sbox = (
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 )
 
+# Table de correspondance
 rcon = (
     0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a,
     0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39,
@@ -41,6 +44,8 @@ rcon = (
     0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d
 )
 
+# Table de Rijndael utilisée dans la substitution de bytes pour remplacer chaque octet par 
+# un autre octet en utilisant une multiplication par 2.
 multiplication_by_2 = (
     0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, 0x10, 0x12, 0x14, 0x16, 0x18, 0x1a, 0x1c, 0x1e,
     0x20, 0x22, 0x24, 0x26, 0x28, 0x2a, 0x2c, 0x2e, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e,
@@ -60,6 +65,8 @@ multiplication_by_2 = (
     0xfb, 0xf9, 0xff, 0xfd, 0xf3, 0xf1, 0xf7, 0xf5, 0xeb, 0xe9, 0xef, 0xed, 0xe3, 0xe1, 0xe7, 0xe5
 )
 
+# Table de Rijndael utilisée dans la substitution de bytes pour remplacer chaque octet par 
+# un autre octet en utilisant une multiplication par 3.
 multiplication_by_3 = (
     0x00, 0x03, 0x06, 0x05, 0x0c, 0x0f, 0x0a, 0x09, 0x18, 0x1b, 0x1e, 0x1d, 0x14, 0x17, 0x12, 0x11,
     0x30, 0x33, 0x36, 0x35, 0x3c, 0x3f, 0x3a, 0x39, 0x28, 0x2b, 0x2e, 0x2d, 0x24, 0x27, 0x22, 0x21,
@@ -79,6 +86,8 @@ multiplication_by_3 = (
     0x0b, 0x08, 0x0d, 0x0e, 0x07, 0x04, 0x01, 0x02, 0x13, 0x10, 0x15, 0x16, 0x1f, 0x1c, 0x19, 0x1a
 )
 
+# Table de Rijndael utilisée dans la substitution de bytes pour remplacer chaque octet par 
+# un autre octet en utilisant une multiplication par 9.
 multiplication_by_9 = (
     0x00, 0x09, 0x12, 0x1b, 0x24, 0x2d, 0x36, 0x3f, 0x48, 0x41, 0x5a, 0x53, 0x6c, 0x65, 0x7e, 0x77,
     0x90, 0x99, 0x82, 0x8b, 0xb4, 0xbd, 0xa6, 0xaf, 0xd8, 0xd1, 0xca, 0xc3, 0xfc, 0xf5, 0xee, 0xe7,
@@ -98,6 +107,8 @@ multiplication_by_9 = (
     0x31, 0x38, 0x23, 0x2a, 0x15, 0x1c, 0x07, 0x0e, 0x79, 0x70, 0x6b, 0x62, 0x5d, 0x54, 0x4f, 0x46
 )
 
+# Table de Rijndael utilisée dans la substitution de bytes pour remplacer chaque octet par 
+# un autre octet en utilisant une multiplication par 11 afin d'effectuer l'inverse de MixColumns.
 multiplication_by_11 = (
     0x00, 0x0b, 0x16, 0x1d, 0x2c, 0x27, 0x3a, 0x31, 0x58, 0x53, 0x4e, 0x45, 0x74, 0x7f, 0x62, 0x69,
     0xb0, 0xbb, 0xa6, 0xad, 0x9c, 0x97, 0x8a, 0x81, 0xe8, 0xe3, 0xfe, 0xf5, 0xc4, 0xcf, 0xd2, 0xd9,
@@ -117,6 +128,8 @@ multiplication_by_11 = (
     0xca, 0xc1, 0xdc, 0xd7, 0xe6, 0xed, 0xf0, 0xfb, 0x92, 0x99, 0x84, 0x8f, 0xbe, 0xb5, 0xa8, 0xa3
 )
 
+# Table de Rijndael utilisée dans la substitution de bytes pour remplacer chaque octet par 
+# un autre octet en utilisant une multiplication par 13 afin d'effectuer l'inverse de MixColumns.
 multiplication_by_13 = (
     0x00, 0x0d, 0x1a, 0x17, 0x34, 0x39, 0x2e, 0x23, 0x68, 0x65, 0x72, 0x7f, 0x5c, 0x51, 0x46, 0x4b,
     0xd0, 0xdd, 0xca, 0xc7, 0xe4, 0xe9, 0xfe, 0xf3, 0xb8, 0xb5, 0xa2, 0xaf, 0x8c, 0x81, 0x96, 0x9b,
@@ -136,6 +149,9 @@ multiplication_by_13 = (
     0xdc, 0xd1, 0xc6, 0xcb, 0xe8, 0xe5, 0xf2, 0xff, 0xb4, 0xb9, 0xae, 0xa3, 0x80, 0x8d, 0x9a, 0x97
 )
 
+
+# Table de Rijndael utilisée dans la substitution de bytes pour remplacer chaque octet par 
+# un autre octet en utilisant une multiplication par 14 afin d'effectuer l'inverse de MixColumns.
 multiplication_by_14 = (
     0x00, 0x0e, 0x1c, 0x12, 0x38, 0x36, 0x24, 0x2a, 0x70, 0x7e, 0x6c, 0x62, 0x48, 0x46, 0x54, 0x5a,
     0xe0, 0xee, 0xfc, 0xf2, 0xd8, 0xd6, 0xc4, 0xca, 0x90, 0x9e, 0x8c, 0x82, 0xa8, 0xa6, 0xb4, 0xba,
@@ -155,103 +171,21 @@ multiplication_by_14 = (
     0xd7, 0xd9, 0xcb, 0xc5, 0xef, 0xe1, 0xf3, 0xfd, 0xa7, 0xa9, 0xbb, 0xb5, 0x9f, 0x91, 0x83, 0x8d
 )
 
-
-def format_hex(entier):
-    """change un entier en string hexa
-
-    Args:
-        entier (int): hexa en entier
-
-    Returns:
-        str: hexa en string
-    """
-    temp = hex(entier)[2:] #Transforme l'entier en hexa et recupere le str sans le '0x'
-    if len(temp) == 1:
-        temp = '0' + temp #rajoute un 0 si la valeur hexa est en desous de 10
-    return temp
-
-
-def RotWord(tab):
-    """Fait une rotation des 4 octets
-
-    Args:
-        tab (np.array): valeur de 4 octets
-
-    Returns:
-        np.array: rotation des 4 octets
-    """
-    return np.roll(tab, -1)
-
-
 def RotWordInversed(tab):
-    """Fait une rotation inverse des 4 octets
-
-    Args:
-        tab (np.array): rotation de 4 octets
-
-    Returns:
-        np.array: valeur des 4 octets
-    """
+    """Décale tous les éléments du tableau d'une position vers la droite. La fonction renvoie ensuite le 
+    tableau résultant avec les éléments décalés."""
     return np.roll(tab, 1)
 
 
-def SubWord(tab):
-    """Faire une substitution des elements du tableau a partir de la BD Sbox
-
-    Args:
-        tab (np.array): tableau avant la substitution
-
-    Returns:
-        np.array: tableau apres la substitution
-    """
-    return np.array([format_hex(Sbox[int(elem, 16)]) for elem in tab])
-
-
 def InverseBit(bit):
-    """_summary_
-
-    Args:
-        bit (_type_): _description_
-
-    Returns:
-        _type_: _description_
-    """
+    """Prend en entrée un bit représenté en hexadécimal sous forme de chaîne de caractères et renvoie l'index 
+    correspondant dans la table de substitution en format hexadécimal."""
     return format_hex(Sbox.index(int(bit, 16)))
-
-
-def Rcon(entier):
-    """fonction d'assistance Rcon : Retourne le rcon grace a la BD rcon
-
-    Args:
-        entier (int): entier
-
-    Returns:
-        np.array: tableau de 4 octets avec les 3 octets les moins significatifs mis à 0
-    """
-    return np.array([format_hex(rcon[entier]), format_hex(0x00), format_hex(0x00), format_hex(0x00)])
-
-
-
-def create_key(key):
-    """cree un array avec la cle passe en argument
-
-    Args:
-        key (str): cle de taille 32 en str 
-
-    Returns:
-        np.array: tableau de taille 4*4
-    """
-    return np.array([key[i]+key[i+1] for i in range(0, len(key), 2)]).reshape(4, 4, order='F')
+ 
 
 def create_key_inversed(key):
-    """retourne le str de la cle numpy
-
-    Args:
-        key (np.array): cle sous forme numpy
-
-    Returns:
-        str: cle sous forme str
-    """
+    """prend une clé sous forme de tableau numpy 4x4 et la retourne sous forme de chaîne 
+    de caractères en effectuant une transposition de la clé initiale."""
     key_inverse = ""
     for i in range(4):
         for j in range(4):
@@ -270,19 +204,6 @@ def XorBit(bit1, bit2):
         str: xor des deux bit en hexa sous forme str
     """
     return format_hex(int(bit1, 16) ^ int(bit2, 16))
-
-
-def XorWord(tab1, tab2):
-    """fais le xor de tout les bits de deux tableaux
-
-    Args:
-        tab1 (np.array): tableau de bit hexa sous forme str
-        tab2 (np.array): tableau de bit hexa sous forme str
-
-    Returns:
-        np.array: tableau de xor des deux tableaux passé en arg
-    """
-    return np.array([format_hex(int(tab1[i], 16) ^ int(tab2[i], 16)) for i in range(4)])
 
 
 def XorTab(tab1, tab2):
@@ -321,51 +242,6 @@ def keyExpansion(key, round):
     return the_key
 
 
-def printState(text):
-    """transforme le text en cle et le renvoi a la fonction create key
-
-    Args:
-        text (str): le texte en claire
-
-    Returns:
-        np.array: le tableau de la cle en hexa 
-    """
-    key = ""
-    for i in text:
-        key += format_hex(ord(i))
-    return create_key(key)
-
-
-def subBytes(etat):
-    """nous fais subword sur tout les element de l'etat
-
-    Args:
-        etat (np.array): etat avant la substitution
-
-    Returns:
-        np.array: etat changer
-    """
-    etat_change = np.copy(etat)
-    for i in range(len(etat_change)):
-        etat_change[i] = SubWord(etat[i])
-    return etat_change
-
-
-def ShiftRows(etat):
-    """Applique le shift sur l'etat actuelle
-
-    Args:
-        etat (np.array): etat avant le shift
-
-    Returns:
-        np.array: etat apres le shift
-    """
-    etat_change = np.copy(etat)
-    for i in range(len(etat)):
-        etat_change[i] = np.roll(etat[i], -i)
-    return etat_change
-
-
 def MixColumns(etat):
     """Applique le MixColumns sur l'etat actuelle
 
@@ -386,50 +262,6 @@ def MixColumns(etat):
             un1, 16) ^ multiplication_by_2[int(un2, 16)] ^ multiplication_by_3[int(un3, 16)])
         etat_change[3, i] = format_hex(multiplication_by_3[int(un0, 16)] ^ int(
             un1, 16) ^ int(un2, 16) ^ multiplication_by_2[int(un3, 16)])
-    return etat_change
-
-
-def AddRoundKey(etat, round):
-    """Applique le AddRoundKey sur l'etat
-
-    Args:
-        etat (np.array): etat avant le AddRoundKey
-        round (int): Tour actuelle
-
-    Returns:
-        np.array: etat apres le AddRoundKey
-    """
-    etat_change = np.copy(etat)
-    for i in range(len(etat)):
-        #Xor sur tout les element de l'etat
-        etat_change[i] = XorWord(etat[i], round[i])
-    return etat_change
-
-
-def SubWordInverse(tab):
-    """Applique SubWordInverse sur l'etat
-
-    Args:
-        tab (np.array): etat actuelle
-
-    Returns:
-        np.array: etat apres le SubWordInverse
-    """
-    return np.array([format_hex(Sbox.index(int(elem, 16))) for elem in tab])
-
-
-def subBytesInverse(etat):
-    """Applique subBytesInverse sur l'etat
-
-    Args:
-        etat (np.array): etat actuelle
-
-    Returns:
-        np.array: etat apres le subBytesInverse
-    """
-    etat_change = np.copy(etat)
-    for i in range(len(etat_change)):
-        etat_change[i] = SubWordInverse(etat[i])
     return etat_change
 
 
@@ -560,8 +392,7 @@ def attaque(DeltaSets):
         return cle
 
 
-cle_test = '000000000000000000000000000000aa'
-
+# Test de la fonction attaque
+cle_test = '2b7e151628aed2a6abf7158809cf4f3c'
 deltats = [setup(cle_test) for _ in range(10)]
-
 print(attaque(deltats))
