@@ -1,10 +1,13 @@
 import numpy as np
 from Chiffrement import*
 
-def AddRoundKeyInverse(etat,round):
-    pass
 
+def SubWordInverse(tab):
+    return np.array([format_hex(Sbox.index(int(elem, 16))) for elem in tab])
+    
+    
 def MixColumnsInverse(etat):
+    """ Fonction inverse de la fonction Mix Columns """
     etat_change = np.copy(etat)
     for i in range(4):
         un0, un1, un2, un3 = etat[0, i], etat[1, i], etat[2, i], etat[3, i]
@@ -16,6 +19,7 @@ def MixColumnsInverse(etat):
 
 
 def ShiftRowsInverse(etat):
+    """ Fonction inverse de ShiftRows, retourne l'état après avoir décale selon une rotation horizontale vers la droite de i positions chaque lignes de l'état """
     etat_change = np.copy(etat)
     for i in range(len(etat)):
         etat_change[i] = np.roll(etat[i], i)
@@ -23,6 +27,7 @@ def ShiftRowsInverse(etat):
 
 
 def subBytesInverse(etat):
+    """  Fonction inverse de SubBytes, Retourne l'état après avoir appliqué la fonction SubWord inverse à chaque bits de l'état """
     etat_change =  np.copy(etat)
     for i in range(len(etat_change)):
         etat_change[i] = SubWordInverse(etat[i])
@@ -30,6 +35,7 @@ def subBytesInverse(etat):
 
 
 def printStateInverse(message_chiffre):
+    """ Retourne le message chiffré précedemment en bloc d'état de 16 bits en héxadecimal à un message en texte """
     text = ""
     message_chiffre = message_chiffre.reshape(16, order='F')
     for i in message_chiffre:
@@ -37,16 +43,8 @@ def printStateInverse(message_chiffre):
     return text
 
 
-def SubWordInverse(tab):
-    return np.array([format_hex(Sbox.index(int(elem, 16))) for elem in tab])
-
-
-def RotWordInversed(tab):
-    """Fais une rotation inversee du tableau"""
-    return np.roll(tab, 1)
-
-
 def decrypt(message_crypte, key):
+    """ Fonction qui retourne le message clair à partir d'un chiffré et de sa clé (chiffrement inverse) """
     key = keyExpansion(key)
     message_crypte = AddRoundKey(message_crypte, key[:, -4:])
     message_crypte = ShiftRowsInverse(message_crypte)
