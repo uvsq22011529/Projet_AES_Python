@@ -3,6 +3,8 @@ from Chiffrement import*
 
 
 def SubWordInverse(tab):
+    """Fonction inverse de SubWord, effectue une substitution de chaque index de l'élément du tableau en utilisant la table
+    de substitution Sbox"""
     return np.array([format_hex(Sbox.index(int(elem, 16))) for elem in tab])
     
     
