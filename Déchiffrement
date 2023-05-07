@@ -1,0 +1,60 @@
+import numpy as np
+from Chiffrement import*
+
+def AddRoundKeyInverse(etat,round):
+    pass
+
+def MixColumnsInverse(etat):
+    etat_change = np.copy(etat)
+    for i in range(4):
+        un0, un1, un2, un3 = etat[0, i], etat[1, i], etat[2, i], etat[3, i]
+        etat_change[0, i] = format_hex(multiplication_by_14[int(un0, 16)]^multiplication_by_11[int(un1, 16)]^multiplication_by_13[int(un2, 16)]^multiplication_by_9[int(un3, 16)])
+        etat_change[1, i] = format_hex(multiplication_by_9[int(un0, 16)]^multiplication_by_14[int(un1, 16)]^multiplication_by_11[int(un2, 16)]^multiplication_by_13[int(un3, 16)])
+        etat_change[2, i] = format_hex(multiplication_by_13[int(un0, 16)]^multiplication_by_9[int(un1, 16)]^multiplication_by_14[int(un2, 16)]^multiplication_by_11[int(un3, 16)])
+        etat_change[3, i] = format_hex(multiplication_by_11[int(un0, 16)]^multiplication_by_13[int(un1, 16)]^multiplication_by_9[int(un2, 16)]^multiplication_by_14[int(un3, 16)])
+    return etat_change
+
+
+def ShiftRowsInverse(etat):
+    etat_change = np.copy(etat)
+    for i in range(len(etat)):
+        etat_change[i] = np.roll(etat[i], i)
+    return etat_change
+
+
+def subBytesInverse(etat):
+    etat_change =  np.copy(etat)
+    for i in range(len(etat_change)):
+        etat_change[i] = SubWordInverse(etat[i])
+    return etat_change
+
+
+def printStateInverse(message_chiffre):
+    text = ""
+    message_chiffre = message_chiffre.reshape(16, order='F')
+    for i in message_chiffre:
+        text+= chr(int(i, 16))
+    return text
+
+
+def SubWordInverse(tab):
+    return np.array([format_hex(Sbox.index(int(elem, 16))) for elem in tab])
+
+
+def RotWordInversed(tab):
+    """Fais une rotation inversee du tableau"""
+    return np.roll(tab, 1)
+
+
+def decrypt(message_crypte, key):
+    key = keyExpansion(key)
+    message_crypte = AddRoundKey(message_crypte, key[:, -4:])
+    message_crypte = ShiftRowsInverse(message_crypte)
+    message_crypte = subBytesInverse(message_crypte)
+    for i in range(9, 0, -1):
+        message_crypte = AddRoundKey(message_crypte, key[:, i*4:i*4+4])
+        message_crypte = MixColumnsInverse(message_crypte)
+        message_crypte = ShiftRowsInverse(message_crypte)
+        message_crypte = subBytesInverse(message_crypte)
+    message_crypte = AddRoundKey(message_crypte, key[:, :4])
+    return printStateInverse(message_crypte)

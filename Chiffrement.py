@@ -1,6 +1,6 @@
 import numpy as np
 
-
+# Table de substitution
 Sbox = (
             0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
             0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
@@ -20,6 +20,7 @@ Sbox = (
             0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
             )
 
+# Table de correspondance
 rcon = ( 
             0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a,
             0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39,
@@ -155,35 +156,30 @@ multiplication_by_14 = (
 
 
 def format_hex(entier):
-    "fonction qui met en format str notre hexa"
+    """Convertit l'entier donné en entrée en chaine de caractères hexdécimale"""
     temp = hex(entier)[2:]
     if len(temp) == 1:
         temp = '0' + temp
     return temp
 
 def RotWord(tab):
-    """Fais une rotation du tableau"""
+    """Utilise la fonction "roll()" de la bibliothèque NumPy pour décaler les éléments du
+    tableau d'une position vers la gauche"""
     return np.roll(tab,-1)
 
-def RotWordInversed(tab):
-    """Fais une rotation inversee du tableau"""
-    return np.roll(tab, 1)
-
 def SubWord(tab):
-    """Faire une substitution des elements du tableau a partir de la BD Sbox"""
+    """Effectue une substitution de chaque élément du tableau en utilisant la table
+    de substitution Sbox"""
     return np.array([format_hex(Sbox[int(elem, 16)]) for elem in tab])
 
-
-def SubWordInverse(tab):
-    return np.array([format_hex(Sbox.index(int(elem, 16))) for elem in tab])
-
 def Rcon(entier):
-    """Retourne le rcon grace a la BD rcon"""
+    """Prend un entier en entrée et renvoie un tableau de 4 octets avec les 3 octets les moins 
+    significatifs mis à 0."""
     return np.array([format_hex(rcon[entier]), format_hex(0x00), format_hex(0x00), format_hex(0x00)])
 
 def create_key(key):
-    """Prend une cle en argument et en ressort un tableau 4*4"""
-    return np.array([key[i]+key[i+1] for i in range(0, len(key), 2)]).reshape(4,4, order='F')
+    """Prend une clé en entrée sous forme de chaîne de caractères hexadécimale et renvoie un tableau 4x4 de cette clé"""
+    return np.array([key[i]+key[i+1] for i in range(0, len(key), 2)]).reshape(4,4, order='F') #
 
 def XorWord(tab1, tab2):
     """Retourne le Xor entre les 2 element"""
@@ -212,13 +208,6 @@ def printState(text):
         key+= format_hex(ord(i))
     return create_key(key)
 
-def printStateInverse(message_chiffre):
-    text = ""
-    message_chiffre = message_chiffre.reshape(16, order='F')
-    for i in message_chiffre:
-        text+= chr(int(i, 16))
-    return text
-
 def subBytes(etat):
     """Nous fais une substitution de chaque element de notre etat"""
     etat_change =  np.copy(etat)
@@ -226,23 +215,11 @@ def subBytes(etat):
         etat_change[i] = SubWord(etat[i])
     return etat_change
 
-def subBytesInverse(etat):
-    etat_change =  np.copy(etat)
-    for i in range(len(etat_change)):
-        etat_change[i] = SubWordInverse(etat[i])
-    return etat_change
-
 def ShiftRows(etat):
     """Nous fais une rotation horizontal de i en fonction de la ligne i de notre etat"""
     etat_change =  np.copy(etat)
     for i in range(len(etat)):
         etat_change[i] = np.roll(etat[i],-i)
-    return etat_change
-
-def ShiftRowsInverse(etat):
-    etat_change = np.copy(etat)
-    for i in range(len(etat)):
-        etat_change[i] = np.roll(etat[i], i)
     return etat_change
 
 def MixColumns(etat):
@@ -256,25 +233,11 @@ def MixColumns(etat):
         etat_change[3, i] = format_hex(multiplication_by_2[int(un3, 16)]^multiplication_by_3[int(un0, 16)]^int(un2, 16)^int(un1, 16))
     return etat_change
 
-def MixColumnsInverse(etat):
-    etat_change = np.copy(etat)
-    for i in range(4):
-        un0, un1, un2, un3 = etat[0, i], etat[1, i], etat[2, i], etat[3, i]
-        etat_change[0, i] = format_hex(multiplication_by_14[int(un0, 16)]^multiplication_by_11[int(un1, 16)]^multiplication_by_13[int(un2, 16)]^multiplication_by_9[int(un3, 16)])
-        etat_change[1, i] = format_hex(multiplication_by_9[int(un0, 16)]^multiplication_by_14[int(un1, 16)]^multiplication_by_11[int(un2, 16)]^multiplication_by_13[int(un3, 16)])
-        etat_change[2, i] = format_hex(multiplication_by_13[int(un0, 16)]^multiplication_by_9[int(un1, 16)]^multiplication_by_14[int(un2, 16)]^multiplication_by_11[int(un3, 16)])
-        etat_change[3, i] = format_hex(multiplication_by_11[int(un0, 16)]^multiplication_by_13[int(un1, 16)]^multiplication_by_9[int(un2, 16)]^multiplication_by_14[int(un3, 16)])
-    return etat_change
-
-
 def AddRoundKey(etat, round):
     etat_change = np.copy(etat)
     for i in range(len(etat)):
         etat_change[i] = XorWord(etat[i], round[i])
     return etat_change
-
-def AddRoundKeyInverse(etat,round):
-    pass
 
 def encrypt(texte, key):
     key = keyExpansion(key)
@@ -289,22 +252,6 @@ def encrypt(texte, key):
     message_crypte = ShiftRows(message_crypte)
     message_crypte = AddRoundKey(message_crypte, key[:, -4:])
     return message_crypte
-
-
-
-
-def decrypt(message_crypte, key):
-    key = keyExpansion(key)
-    message_crypte = AddRoundKey(message_crypte, key[:, -4:])
-    message_crypte = ShiftRowsInverse(message_crypte)
-    message_crypte = subBytesInverse(message_crypte)
-    for i in range(9, 0, -1):
-        message_crypte = AddRoundKey(message_crypte, key[:, i*4:i*4+4])
-        message_crypte = MixColumnsInverse(message_crypte)
-        message_crypte = ShiftRowsInverse(message_crypte)
-        message_crypte = subBytesInverse(message_crypte)
-    message_crypte = AddRoundKey(message_crypte, key[:, :4])
-    return printStateInverse(message_crypte)
 
 
 
