@@ -22,3 +22,16 @@ decrypt:
 clean:
 	rm -rf __pycache__
   
+# Faire une archive
+LADIR="Projet_Crypto_AES"
+
+zip:
+	rm -rf ${LADIR}
+	mkdir ${LADIR}
+	cp Makefile ${LADIR}
+	cp Attaque.py ${LADIR}
+	cp Chiffrement.py ${LADIR}
+	cp Déchiffrement.py ${LADIR}
+	rm -f ${LADIR}.zip
+	zip -r ${LADIR}.zip ${LADIR}
+	rm -rf ${LADIR}
