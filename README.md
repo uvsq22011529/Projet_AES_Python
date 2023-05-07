@@ -1,11 +1,10 @@
 # Projet_AES_Python
 
-## Implémenter le chiffrement et le déchiffrement de l’AES avec une clé de 128 bits.
-
-## Implementation de l'attaque intégrale (ou encore attaque par saturation ou square attack) sur 4 tours de ce chiffrement, car il n'existe pas d'attaques "efficaces" connues sur l'AES complet.
-
+## Implémentation du chiffrement et déchiffrement de l’AES avec une clé de 128 bits, ainsi que de sa cryptanalyse.
 
 Nous avons implementé le chiffrement par bloc de l'AES qui prend en entrée un message de 128 bits et retourne en sortie un chiffré de 128 bits également.
+
+Nous avons aussi fait une attaque intégrale (ou encore attaque par saturation ou square attack) sur 4 tours de ce chiffrement, car il n'existe pas d'attaques "efficaces" connues sur l'AES complet.
 
 Le code a été fait avec la version 3.9 de python, il est donc conseillé d'utiliser une version semblable ou ulterieure.
 
