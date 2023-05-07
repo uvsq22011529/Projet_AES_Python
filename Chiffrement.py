@@ -156,12 +156,13 @@ def keyExpansion(key):
             the_key = np.c_[the_key, XorWord(the_key[:, -1], the_key[:, -4])]
     return the_key
 
-
 def printState(text):
     """Transforme un texte en une clé hexadécimale et la met sous forme de tableau 4x4."""
     key = ""
     for i in text:
         key+= format_hex(ord(i))
+    while len(key) < 32:
+        key = "00" + key
     return create_key(key)
 
 def subBytes(etat):

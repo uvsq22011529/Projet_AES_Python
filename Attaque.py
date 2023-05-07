@@ -184,7 +184,7 @@ def InverseBit(bit):
  
 
 def create_key_inversed(key):
-    """prend une clé sous forme de tableau numpy 4x4 et la retourne sous forme de chaîne 
+    """Prend une clé sous forme de tableau numpy 4x4 et la retourne sous forme de chaîne 
     de caractères en effectuant une transposition de la clé initiale."""
     key_inverse = ""
     for i in range(4):
@@ -194,41 +194,25 @@ def create_key_inversed(key):
 
 
 def XorBit(bit1, bit2):
-    """fais le xor entre deux bits
-
-    Args:
-        bit1 (str): premier bit en hexa sous forme str
-        bit2 (str): second bit en hexa sous forme str
-
-    Returns:
-        str: xor des deux bit en hexa sous forme str
+    """Prend en entrée deux chaînes de caractères bit1 et bit2 représentant chacune un octet en hexadécimal, 
+    et retourne le résultat de l'opération XOR entre ces deux octets, également représenté en hexadécimal sous
+    forme de chaîne de caractères.
     """
     return format_hex(int(bit1, 16) ^ int(bit2, 16))
 
 
 def XorTab(tab1, tab2):
-    """fais le xor de tout les bits de deux matrices
-
-    Args:
-        tab1 (np.array): matrice de bit hexa sous forme str
-        tab2 (np.array): matrice de bit hexa sous forme str
-
-    Returns:
-        np.array: matrice de xor des deux matrices passé en arg
+    """Cette fonction prend en entrée deux matrices de 4x4 contenant des octets en hexadécimal 
+    sous forme de chaînes de caractères. Elle effectue ensuite la fonction XOR entre chaque octet 
+    correspondant des deux matrices et stocke le résultat dans une nouvelle matrice de même dimension. 
+    La fonction renvoie la matrice de résultats.
     """
     return np.array([[format_hex(int(tab1[i][j], 16) ^ int(tab2[i][j], 16)) for i in range(4)] for j in range(4)])
 
 
 def keyExpansion(key, round):
-    """S'occupe de cree l'expansion d'une cle en fonction des tours
-
-    Args:
-        key (str): cle a expendre
-        round (int): nombre de tour
-
-    Returns:
-        np.array: cle expendue
-    """
+    """Prend en entrée une clé sous forme de chaîne de caractères key ainsi qu'un nombre de tours round et renvoie
+    la clé étendue sous forme d'une matrice numpy."""
     the_key = create_key(key)
     for i in range(1, round+1):
         x = the_key[:, -1]  # Recuperre la derniere colonne de la cle
@@ -243,14 +227,9 @@ def keyExpansion(key, round):
 
 
 def MixColumns(etat):
-    """Applique le MixColumns sur l'etat actuelle
-
-    Args:
-        etat (np.array): etat avant le MixColumns
-
-    Returns:
-        np.array: etat apres le MixColumns
-    """
+    """La fonction calcule chaque élément de la matrice de sortie en appliquant des opérations arithmétiques
+    spécifiques à chaque élément de la matrice d'entrée. Ces opérations sont décrites dans la documentation
+    de la fonction dans le fichier Chiffrement."""
     etat_change = np.copy(etat)
     for i in range(4):
         un0, un1, un2, un3 = etat[0, i], etat[1, i], etat[2, i], etat[3, i]
@@ -266,16 +245,9 @@ def MixColumns(etat):
 
 
 def reverseState(key, pos_key, d_set):
-    """_summary_
-
-    Args:
-        key (str): code hexa de la cle expension a la position pos_key
-        pos_key (tuple): position ligne, colonne de la cle sous forme de (x, y)
-        d_set (list): ensemble de 256 delta
-
-    Returns:
-        list: liste de r bits
-    """
+    """Prend en entrée une clé sous forme hexadécimale, une position de clé (ligne, colonne), et un ensemble de 256 valeurs.
+    Elle retourne une liste r_bits obtenue en faisant un XOR entre chaque élément de l'ensemble delta à la position de clé
+    donnée et la clé donnée en entrée, puis en inversant le résultat avec la fonction InverseBit."""
     r_bits = []
     for elem in d_set:
         x = XorBit(elem[pos_key], key)
@@ -285,14 +257,8 @@ def reverseState(key, pos_key, d_set):
 
 
 def checkGuess(v_set):
-    """fais le xor sur tout les elements du l'ensemble des valeurs renvoyer par ReverseState
-
-    Args:
-        v_set (List): ensemble de bits retourné
-
-    Returns:
-        Boolean: renvoi True si la somme des valeurs == 0
-    """
+    """Effectue un XOR entre les éléments de l'ensemble donné en entrée et retourne 
+    True si la somme des valeurs obtenues est égale à 0."""
     result = '00'
     for i in v_set:
         result = XorBit(result, i)
@@ -300,16 +266,9 @@ def checkGuess(v_set):
     
 
 def EncryptWithRound(texte, key, round):
-    """Encrypt le texte avec la cle et le nombre de round
-
-    Args:
-        texte (str): message claire
-        key (str): cle donne a la achine
-        round (int): nombre de tour sur lequel encrypter
-
-    Returns:
-        np.array: message crypte
-    """
+    """Prend en entrée un texte clair, une clé et le nombre de tours.
+    Elle effectue l'expansion de la clé, puis elle applique l'opération AddRoundKey et les opérations nécessaires sur chaque tour.
+    Enfin, elle applique l'opération AddRoundKey une dernière fois et retourne le message chiffré."""
     # Fait l'expension de la cle
     key = keyExpansion(key, round)
     message_crypte = texte
@@ -326,15 +285,8 @@ def EncryptWithRound(texte, key, round):
 
 
 def setup(cleP):
-    """recupere une cle et renvoi un delta couple clair chiffre
-
-    Args:
-        cleP (np.array): cle a trouver
-
-    Returns:
-        tab: delta_set_claire
-        tab : delta_set_chiffre
-    """
+    """Prend une clé en entrée et renvoie un couple de tableaux delta_set_clair
+    et delta_set_chiffre aléatoires tous les deux de de taille de 256 bits."""
     x = format_hex(random.randint(0, 255))
     delta_set_clair = np.array([[[format_hex(i), x, x, x], [x, x, x, x], [
                          x, x, x, x], [x, x, x, x]] for i in range(256)])
@@ -343,17 +295,10 @@ def setup(cleP):
     return delta_set_clair, delta_set_chiffre
 
 
-
 def InvertKeyExpansion(index, cle_ronde):
-    """Inversion de la Cle expended
-
-    Args:
-        index (int): nombre de tour
-        cle_ronde (np.array): cle_round au index tour
-
-    Returns:
-        np.array: cle principale
-    """
+    """Prend en entrée un nombre de tours index et une clé de tour cle_ronde. 
+    La fonction retourne ensuite les 4 premières colonnes de la clé principale à 
+    partir de laquelle la clé ronde a été générée."""
     for i in range(index, 0, -1):
         for _ in range(3):
             cle_ronde = np.c_[XorWord(cle_ronde[:, 2], cle_ronde[:, 3]), cle_ronde]
@@ -366,14 +311,8 @@ def InvertKeyExpansion(index, cle_ronde):
 
 
 def attaque(DeltaSets):
-    """casse l'aes pour un tour 4 et si le clair encrypter egale au chiffré retourne la clé
-
-    Args:
-        DeltaSets (List): ensemble de delta set clair/chiffré 
-
-    Returns:
-        np.array: la clé
-    """
+    """Prend une liste de delta sets clair/chiffré en entrée et tente de casser l'AES sur 4tours
+    Si la version claire encryptée est égale à la version chiffrée, elle retourne la clé utilisée."""
     cle_expend = []
     for pos in range(16):
         index= (pos % 4, pos // 4)
