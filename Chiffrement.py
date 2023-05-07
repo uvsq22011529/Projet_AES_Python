@@ -1,3 +1,4 @@
+# Bibliothèque NumPy
 import numpy as np
 
 # Table de substitution
