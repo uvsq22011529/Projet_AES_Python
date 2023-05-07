@@ -162,10 +162,12 @@ def format_hex(entier):
         temp = '0' + temp
     return temp
 
+
 def RotWord(tab):
     """Utilise la fonction "roll()" de la bibliothèque NumPy pour décaler les éléments du
     tableau d'une position vers la gauche"""
     return np.roll(tab,-1)
+
 
 def SubWord(tab):
     """Effectue une substitution de chaque élément du tableau en utilisant la table
@@ -177,18 +179,22 @@ def Rcon(entier):
     significatifs mis à 0."""
     return np.array([format_hex(rcon[entier]), format_hex(0x00), format_hex(0x00), format_hex(0x00)])
 
+
 def create_key(key):
     """Prend une clé en entrée sous forme de chaîne de caractères hexadécimale et renvoie un tableau 4x4 de cette clé"""
-    return np.array([key[i]+key[i+1] for i in range(0, len(key), 2)]).reshape(4,4, order='F') #
+    return np.array([key[i]+key[i+1] for i in range(0, len(key), 2)]).reshape(4,4, order='F') # le 'F' permet de spécifier que les 
+                                                                                              # éléments du tableau doivent être disposés 
+                                                                                              # dans l'ordre de colonne
 
 def XorWord(tab1, tab2):
-    """Retourne le Xor entre les 2 element"""
+    """Utilise la bibliothèque NumPy pour effectuer une opération de XOR (OU exclusif) entre deux tableaux tab1 et tab2
+    contenant des éléments représentant des valeurs hexadécimales"""
     return np.array([format_hex(int(tab1[i],16)^int(tab2[i],16)) for i in range(4)])
 
 
-
 def keyExpansion(key):
-    """S'occupe de cree l'expansion d'une cle en fonction des tours"""
+    """Prend en entrée une clé sous forme de chaîne de caractères hexadécimale puis s'occupe de créer l'expansion 
+    de la clé en fonction des tours"""
     the_key = create_key(key)
     for i in range(1, 11):
         x = the_key[:, -1] #Recuperre la derniere colonne de la cle
@@ -201,29 +207,46 @@ def keyExpansion(key):
             the_key = np.c_[the_key, XorWord(the_key[:, -1], the_key[:, -4])]
     return the_key
 
+
 def printState(text):
-    """Transforme un texte en cle et le met sous format 4*4"""
+    """Transforme un texte en une clé hexadécimale et la met sous forme de tableau 4x4."""
     key = ""
     for i in text:
         key+= format_hex(ord(i))
     return create_key(key)
 
 def subBytes(etat):
-    """Nous fais une substitution de chaque element de notre etat"""
+    """La fonction prend en entrée un tableau 4x4 représentant l'état actuel et effectue la substitution de bytes 
+    en utilisant la fonction "SubWord()" sur chaque élément de l'état"""
     etat_change =  np.copy(etat)
     for i in range(len(etat_change)):
         etat_change[i] = SubWord(etat[i])
     return etat_change
 
 def ShiftRows(etat):
-    """Nous fais une rotation horizontal de i en fonction de la ligne i de notre etat"""
+    """La fonction prend en entrée un tableau 4x4 représentant l'état actuel et applique une rotation horizontale de chaque ligne de 
+    l'état en fonction de l'indice de la ligne. Plus précisément, la première ligne n'est pas modifiée, la deuxième ligne est décalée 
+    d'une position vers la gauche, la troisième ligne est décalée de deux positions vers la gauche et la quatrième ligne est décalée de 
+    trois positions vers la gauche."""
     etat_change =  np.copy(etat)
     for i in range(len(etat)):
         etat_change[i] = np.roll(etat[i],-i)
     return etat_change
 
 def MixColumns(etat):
-    """Nous fais un """
+    """Cette fonction implémente l'étape de mélange de colonnes de l'algorithme AES. 
+    Elle prend en entrée un état sous forme d'une matrice 4x4, effectue des opérations 
+    arithmétiques sur chaque colonne, et renvoie l'état résultant.
+
+    Plus précisément, la fonction effectue les opérations suivantes pour chaque colonne de l'état :
+
+    - Elle multiplie le premier élément par 2, le deuxième élément par 3, le troisième élément par 1, 
+    et le quatrième élément par 1.
+    - Elle additionne les quatre produits obtenus, modulo 256.
+    - Enfin, elle remplace chaque élément de la colonne par le résultat obtenu.
+
+    Cette étape permet de mélanger les bits dans chaque colonne, de sorte que les bits d'un octet affectent 
+    les bits de tous les autres octets de la même colonne."""
     etat_change = np.copy(etat)
     for i in range(4):
         un0, un1, un2, un3 = etat[0, i], etat[1, i], etat[2, i], etat[3, i]
@@ -234,12 +257,17 @@ def MixColumns(etat):
     return etat_change
 
 def AddRoundKey(etat, round):
+    """La fonction prend en entrée un état et une clé de ronde (aussi appelée clé d'expansion), et retourne l'état résultant après avoir effectué 
+    un XOR entre chaque colonne de la clé de ronde et la colonne correspondante de l'état. Cela permet de mélanger la clé et l'état avant de passer
+    à l'étape suivante."""
     etat_change = np.copy(etat)
     for i in range(len(etat)):
         etat_change[i] = XorWord(etat[i], round[i])
     return etat_change
 
 def encrypt(texte, key):
+    """Effectue le chiffrement AES complet en utilisant les fonctions précédemment définies. 
+    La fonction prend en entrée le texte à chiffrer et la clé puis retourne le message chiffré."""
     key = keyExpansion(key)
     message_crypte = printState(texte)
     message_crypte = AddRoundKey(message_crypte, key[:, :4])
