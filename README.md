@@ -10,7 +10,7 @@ Le code a été fait avec la version 3.9 de python, il est donc conseillé d'uti
 
 ## Prérequis : 
 
-Il faudra installer la bibliothéque numpy afin d'executer le code avec la commande __make install__.
+Il faudra installer la bibliothéque numpy avec la commande __make install__ afin de pouvoir executer le code.
 
 
 ## Utilisation
