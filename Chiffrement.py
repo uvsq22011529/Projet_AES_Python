@@ -214,6 +214,14 @@ def AddRoundKey(etat, round):
         etat_change[i] = XorWord(etat[i], round[i])
     return etat_change
 
+def printStateInverse(message_chiffre):
+    """ Retourne le message chiffré précedemment en bloc d'état de 16 bits en héxadecimal à un message en texte """
+    text = ""
+    message_chiffre = message_chiffre.reshape(16, order='F')
+    for i in message_chiffre:
+        text+= chr(int(i, 16))
+    return text
+
 def encrypt(texte, key):
     """Effectue le chiffrement AES complet en utilisant les fonctions précédemment définies. 
     La fonction prend en entrée le texte à chiffrer et la clé puis retourne le message chiffré."""
@@ -230,6 +238,11 @@ def encrypt(texte, key):
     message_crypte = AddRoundKey(message_crypte, key[:, -4:])
     return message_crypte
 
+
+# Test de la fonction de chiffrement
+texte = 'This is one text'
+key = '2b7e151628aed2a6abf7158809cf4f3c'
+print('Le message chiffré obtenu est :\n', printStateInverse(encrypt(texte, key)))
 
 
 
