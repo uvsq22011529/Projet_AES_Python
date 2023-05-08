@@ -1,8 +1,14 @@
 # coding=utf-8
 import numpy as np
 import random
+<<<<<<< HEAD
 from Dechiffrement import *
 from Chiffrement import *
+=======
+import secrets
+from Dechiffrement import*
+from Chiffrement import*
+>>>>>>> cc647b8681dfce079bec893f7b58e3fd542309b9
 
 # Table de substitution
 Sbox = (
@@ -332,8 +338,18 @@ def attaque(DeltaSets):
     if np.array_equiv(EncryptWithRound(DeltaSets[0][0][0], cle, 4), DeltaSets[0][1][0]):
         return cle
 
+def generate_key():
+    """Génere une clé de 128 bits alétoirement grace au module secrets """
+    with open("key.txt", "w+") as f:
+        num_bytes = 16  # 128 bits
+        key = secrets.token_hex(num_bytes)
+        f.write(key)
 
+generate_key()
+
+with open("key.txt", "r") as f:
+    cle_test = f.readline()
 # Test de la fonction attaque
-cle_test = '2b7e151628aed2a6abf7158809cf4f3c'
+#cle_test = '2b7e151628aed2a6abf7158809cf4f3c'
 deltats = [setup(cle_test) for _ in range(10)]
 print(attaque(deltats))
