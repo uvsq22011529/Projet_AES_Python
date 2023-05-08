@@ -104,6 +104,29 @@ multiplication_by_9 = (
             0x31,0x38,0x23,0x2a,0x15,0x1c,0x07,0x0e,0x79,0x70,0x6b,0x62,0x5d,0x54,0x4f,0x46
 )
 
+def subBytes(etat):
+    """La fonction prend en entrée un tableau 4x4 représentant l'état actuel
+    et effectue la substitution de bytes en utilisant la fonction "SubWord()"
+    sur chaque élément de l'état."""
+    etat_change =  np.copy(etat)
+    for i in range(len(etat_change)):
+        etat_change[i] = SubWord(etat[i])
+    return etat_change
+
+
+def ShiftRows(etat):
+    """La fonction prend en entrée un tableau 4x4 représentant l'état actuel et
+    applique une rotation horizontale de chaque ligne de l'état en fonction de 
+    l'indice de la ligne. Plus précisément, la première ligne n'est pas modifiée,
+    la deuxième ligne est décalée d'une position vers la gauche, la troisième ligne
+    est décalée de deux positions vers la gauche et la quatrième ligne est décalée de 
+    trois positions vers la gauche."""
+    etat_change =  np.copy(etat)
+    for i in range(len(etat)):
+        etat_change[i] = np.roll(etat[i],-i)
+    return etat_change
+
+
 def format_hex(entier):
     """Convertit l'entier donné en entrée en chaine de caractères hexdécimale"""
     temp = hex(entier)[2:] #Transforme l'entier en hexa et recupere le str sans le '0x'
@@ -165,23 +188,6 @@ def printState(text):
         key = "00" + key
     return create_key(key)
 
-def subBytes(etat):
-    """La fonction prend en entrée un tableau 4x4 représentant l'état actuel et effectue la substitution de bytes 
-    en utilisant la fonction "SubWord()" sur chaque élément de l'état"""
-    etat_change =  np.copy(etat)
-    for i in range(len(etat_change)):
-        etat_change[i] = SubWord(etat[i])
-    return etat_change
-
-def ShiftRows(etat):
-    """La fonction prend en entrée un tableau 4x4 représentant l'état actuel et applique une rotation horizontale de chaque ligne de 
-    l'état en fonction de l'indice de la ligne. Plus précisément, la première ligne n'est pas modifiée, la deuxième ligne est décalée 
-    d'une position vers la gauche, la troisième ligne est décalée de deux positions vers la gauche et la quatrième ligne est décalée de 
-    trois positions vers la gauche."""
-    etat_change =  np.copy(etat)
-    for i in range(len(etat)):
-        etat_change[i] = np.roll(etat[i],-i)
-    return etat_change
 
 def MixColumns(etat):
     """Cette fonction implémente l'étape de mélange de colonnes de l'algorithme AES. 
@@ -207,9 +213,10 @@ def MixColumns(etat):
     return etat_change
 
 def AddRoundKey(etat, round):
-    """La fonction prend en entrée un état et une clé de ronde (aussi appelée clé d'expansion), et retourne l'état résultant après avoir effectué 
-    un XOR entre chaque colonne de la clé de ronde et la colonne correspondante de l'état. Cela permet de mélanger la clé et l'état avant de passer
-    à l'étape suivante."""
+    """La fonction prend en entrée un état et une clé de ronde (aussi appelée clé d'expansion), 
+    et retourne l'état résultant après avoir effectué un XOR entre chaque colonne de la clé de 
+    ronde et la colonne correspondante de l'état. Cela permet de mélanger la clé et l'état avant
+    de passer à l'étape suivante."""
     etat_change = np.copy(etat)
     for i in range(len(etat)):
         etat_change[i] = XorWord(etat[i], round[i])
@@ -224,8 +231,9 @@ def printStateInverse(message_chiffre):
     return text
 
 def encrypt(texte, key):
-    """Effectue le chiffrement AES complet en utilisant les fonctions précédemment définies. 
-    La fonction prend en entrée le texte à chiffrer et la clé puis retourne le message chiffré."""
+    """Effectue le chiffrement AES complet en utilisant les fonctions 
+    précédemment définies. La fonction prend en entrée le texte à
+    chiffrer et la clé puis retourne le message chiffré."""
     key = keyExpansion(key)
     message_crypte = printState(texte)
     message_crypte = AddRoundKey(message_crypte, key[:, :4])

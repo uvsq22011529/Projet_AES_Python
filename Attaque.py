@@ -1,8 +1,8 @@
 # coding=utf-8
 import numpy as np
 import random
-from Dechiffrement import*
-from Chiffrement import*
+from Dechiffrement import *
+from Chiffrement import *
 
 # Table de substitution
 Sbox = (
@@ -245,9 +245,11 @@ def MixColumns(etat):
 
 
 def reverseState(key, pos_key, d_set):
-    """Prend en entrée une clé sous forme hexadécimale, une position de clé (ligne, colonne), et un ensemble de 256 valeurs.
-    Elle retourne une liste r_bits obtenue en faisant un XOR entre chaque élément de l'ensemble delta à la position de clé
-    donnée et la clé donnée en entrée, puis en inversant le résultat avec la fonction InverseBit."""
+    """Prend en entrée une clé sous forme hexadécimale, une position de clé
+    (ligne, colonne), et un ensemble de 256 valeurs.Elle retourne une liste
+    r_bits obtenue en faisant un XOR entre chaque élément de l'ensemble delta
+    à la position de clé donnée et la clé donnée en entrée, puis en inversant
+    le résultat avec la fonction InverseBit."""
     r_bits = []
     for elem in d_set:
         x = XorBit(elem[pos_key], key)
@@ -297,8 +299,8 @@ def setup(cleP):
 
 def InvertKeyExpansion(index, cle_ronde):
     """Prend en entrée un nombre de tours index et une clé de tour cle_ronde. 
-    La fonction retourne ensuite les 4 premières colonnes de la clé principale à 
-    partir de laquelle la clé ronde a été générée."""
+    La fonction retourne ensuite les 4 premières colonnes de la clé principale
+    à partir de laquelle la clé ronde a été générée."""
     for i in range(index, 0, -1):
         for _ in range(3):
             cle_ronde = np.c_[XorWord(cle_ronde[:, 2], cle_ronde[:, 3]), cle_ronde]
