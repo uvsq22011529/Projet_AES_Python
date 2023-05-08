@@ -1,14 +1,9 @@
 # coding=utf-8
 import numpy as np
 import random
-<<<<<<< HEAD
-from Dechiffrement import *
-from Chiffrement import *
-=======
 import secrets
 from Dechiffrement import*
 from Chiffrement import*
->>>>>>> cc647b8681dfce079bec893f7b58e3fd542309b9
 
 # Table de substitution
 Sbox = (
