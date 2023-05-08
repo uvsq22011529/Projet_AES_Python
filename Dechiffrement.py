@@ -1,5 +1,5 @@
 import numpy as np
-from Chiffrement import*
+from Chiffrement import *
 
 # Table de Rijndael utilisée dans la substitution de bytes pour remplacer chaque octet par 
 # un autre octet en utilisant une multiplication par 11 afin d'effectuer l'inverse de MixColumns.
@@ -120,7 +120,7 @@ def decrypt(message_crypte, key):
     message_crypte = AddRoundKey(message_crypte, key[:, :4])
     return printStateInverse(message_crypte)
 
-# Test de la fonction déchiffrement
+# Test de la fonction de déchiffrement
 texte = 'This is one text'
 message_crypte = encrypt(texte, key)
 key = '2b7e151628aed2a6abf7158809cf4f3c'

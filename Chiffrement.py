@@ -169,13 +169,15 @@ def keyExpansion(key):
     de la clé en fonction des tours"""
     the_key = create_key(key)
     for i in range(1, 11):
-        x = the_key[:, -1] #Recuperre la derniere colonne de la cle
+        # Récupère la dernière colonne de la clé
+        x = the_key[:, -1]
         x = RotWord(x)
         x = SubWord(x)
         x = XorWord(x, the_key[:, -4])
         x = XorWord(x, Rcon(i))
         the_key = np.c_[the_key, x]
         for _ in range(3):
+            # Permet d'obtenir les 4 colonnes de la clé étendue
             the_key = np.c_[the_key, XorWord(the_key[:, -1], the_key[:, -4])]
     return the_key
 
