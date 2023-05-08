@@ -20,12 +20,15 @@ decrypt:
 # Nettoyage des fichiers générés
 clean:
 	rm -rf __pycache__
+	rm key.txt
   
 # Faire une archive
 LADIR=Projet_AES_Python
 
+# Commande pour installer zip
+#sudo apt-get install zip unzip
+
 zip: 
-    sudo apt-get install zip unzip 
 	rm -rf ${LADIR}
 	mkdir ${LADIR}
 	cp Makefile ${LADIR}
@@ -34,5 +37,6 @@ zip:
 	cp Dechiffrement.py ${LADIR}
 	cp main.py ${LADIR}
 	cp README.md ${LADIR}
+	rm -f ${LADIR}.zip
 	zip -r ${LADIR}.zip ${LADIR}
 	rm -rf ${LADIR}
